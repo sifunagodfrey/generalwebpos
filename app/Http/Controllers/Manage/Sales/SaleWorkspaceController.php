@@ -117,7 +117,12 @@ class SaleWorkspaceController extends Controller
         $shift = $staffId
             ? DB::table('su_shifts')->where('staff_id', $staffId)->where('is_closed', 0)->latest('id')->first()
             : null;
-
+        // ---------------
+        // No open shift, send the cashier back to the sale screen
+        // ---------------
+        if (!$shift) {
+            return redirect()->route('manage.workspace.sale', ['page' => 'new'])->with('status', 'Open a shift before making a sale.');
+        }
         return view('manage.sales.checkout.payment', $this->context('new', compact('customers', 'staffId', 'shift', 'vat')));
     }
 

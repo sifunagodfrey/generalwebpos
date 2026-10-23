@@ -114,21 +114,10 @@ class SaleCheckoutService
             $staffId=$this->staffId($userId);
             if (!$staffId) $this->fail('Your login must be linked to an active staff record.');
             $shift=DB::table('su_shifts')->where('staff_id',$staffId)->where('is_closed',0)->orderByDesc('id')->lockForUpdate()->first();
-            if ($complete && !$shift) {
-                // An authorized cashier's first completed sale opens a zero-float shift.
-                // Staff row lock prevents two concurrent transactions creating separate shifts.
-                DB::table('su_staff')->where('id', $staffId)->lockForUpdate()->first();
-                $shift = DB::table('su_shifts')->where('staff_id', $staffId)
-                    ->where('is_closed', 0)->orderByDesc('id')->lockForUpdate()->first();
-                if (!$shift) {
-                    $shiftId = DB::table('su_shifts')->insertGetId([
-                        'staff_id' => $staffId, 'opening_cash' => 0,
-                        'opening_mobile_money' => 0, 'is_closed' => 0,
-                        'opened_at' => now(), 'created_at' => now(), 'updated_at' => now(),
-                    ]);
-                    $shift = DB::table('su_shifts')->where('id', $shiftId)->first();
-                }
-            }
+            // ---------------
+            // A sale, held or completed, needs an open shift
+            // ---------------
+            if (!$shift) $this->fail('Open a shift before making a sale.');
             $customerId=$data['customer_id'] ?? null;
             $quote=$this->pricedLines($data['lines'],$customerId,$complete);
             $heldId=$data['held_sale_id'] ?? null;

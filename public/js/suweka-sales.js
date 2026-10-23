@@ -272,8 +272,18 @@
                 writeCart([]);
                 this.error = '';
             },
+            // ---------------
+            // Open the Open shift dialog instead of failing when no shift is open
+            // ---------------
+            requireShift() {
+                if (this.shiftOpen) return true;
+                this.error = 'Open a shift before making a sale.';
+                window.dispatchEvent(new Event('sw:open-shift'));
+                return false;
+            },
             async hold() {
                 if (this.busy || !this.lines.length) return;
+                if (!this.requireShift()) return;
                 this.busy = true;
                 this.error = '';
                 try {
@@ -288,6 +298,7 @@
             },
             goPayment() {
                 if (!this.lines.length) return;
+                if (!this.requireShift()) return;
                 window.location.assign(this.paymentUrl);
             },
             async submitSearch() {

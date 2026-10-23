@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" x-data="{navOpen:false,profileOpen:false,moreOpen:false,saleTab:'products'}" @sw:sale-tab.window="saleTab=$event.detail" @keydown.escape.window="moreOpen=false;profileOpen=false">
+<html lang="en" x-data="{navOpen:false,profileOpen:false,moreOpen:false,saleTab:'products',shiftModal:false}" @sw:sale-tab.window="saleTab=$event.detail" @sw:open-shift.window="shiftModal=true" @keydown.escape.window="moreOpen=false;profileOpen=false">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}">
 <title>@yield('title','Suweka POS') — Suweka POS</title>
 <link rel="icon" href="{{ asset('images/suweka-icon.png') }}">
@@ -27,9 +27,9 @@
  <strong x-show="saleTab!=='cart'">@yield('heading', !empty($module) ? $modules[$module]['label'] : 'Suweka')</strong>
  @if(($module??'')==='sale')<strong x-cloak x-show="saleTab==='cart'">Cart</strong>@endif
  <span class="sw-mobile-appbar-actions">
- @if(($module??'')==='sale' && in_array($page??'',['new','payment']))
- <a class="sw-mobile-shift-dot {{ ($shift ?? null) ? 'is-open' : 'is-closed' }}" href="{{ route('manage.workspace.cashbox',['page'=>'index']) }}" title="{{ ($shift ?? null) ? 'Close shift' : 'Open shift' }}"><i class="fa-regular {{ ($shift ?? null) ? 'fa-circle-stop' : 'fa-circle-play' }}"></i></a>
- @endif
+@if(($module??'')==='sale')
+<a class="sw-mobile-shift-dot {{ ($activeShift ?? null) ? 'is-open' : 'is-closed' }}" href="{{ route('manage.workspace.cashbox',['page'=>'index']) }}" @unless($activeShift ?? null) @click.prevent="shiftModal=true" @endunless title="{{ ($activeShift ?? null) ? 'Close shift' : 'Open shift' }}"><i class="fa-regular {{ ($activeShift ?? null) ? 'fa-circle-stop' : 'fa-circle-play' }}"></i></a>
+@endif
  <a href="{{ route('manage.dashboard.index') }}" title="Main menu"><i class="fa-solid fa-house"></i></a>
  </span>
  </header>
@@ -42,8 +42,8 @@
  <header class="sw-topbar">
 @if(!empty($module))<div class="sw-page-heading"><button class="sw-hamburger" @click="navOpen=!navOpen"><i class="fa-solid fa-bars"></i></button><div><h1>@yield('heading','Overview')</h1>@hasSection('subtitle')<p>@yield('subtitle')</p>@endif</div></div>
 @else <a href="{{ route('manage.dashboard.index') }}" class="sw-logo"><img src="{{ asset('images/suweka-logo.png') }}" alt="Suweka" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"> <span style="display:none">Suweka</span></a>@endif
-@if(($module??'')==='sale' && in_array($page??'',['new','payment']))
-<a class="sw-shift-pill {{ ($shift ?? null) ? 'is-open' : 'is-closed' }}" href="{{ route('manage.workspace.cashbox',['page'=>'index']) }}"><span class="sw-shift-dot"></span>{{ ($shift ?? null) ? 'Close shift' : 'Open shift' }}</a>
+@if(($module??'')==='sale')
+<a class="sw-shift-pill {{ ($activeShift ?? null) ? 'is-open' : 'is-closed' }}" href="{{ route('manage.workspace.cashbox',['page'=>'index']) }}" @unless($activeShift ?? null) @click.prevent="shiftModal=true" @endunless><span class="sw-shift-dot"></span>{{ ($activeShift ?? null) ? 'Close shift' : 'Open shift' }}</a>
 @endif
 <div class="sw-userbar" @click.outside="profileOpen=false"><div class="sw-avatar">{{ strtoupper(substr(auth()->user()->first_name??'U',0,1).substr(auth()->user()->last_name??'',0,1)) }}</div><span>{{ trim((auth()->user()->first_name??'').' '.(auth()->user()->last_name??'')) }}</span><button type="button" @click.stop="profileOpen=!profileOpen" :aria-expanded="profileOpen.toString()" aria-haspopup="true" aria-label="Account options"><i class="fa-solid fa-angle-down"></i></button><div class="sw-account-pop" x-cloak x-show="profileOpen" x-transition.opacity><form method="POST" action="{{ route('manage.auth.logout') }}">@csrf<button type="submit">Sign out</button></form></div></div>
 </header>
@@ -68,5 +68,8 @@
   </div>
  </div>
 </div>
+@if(($module??'')==='sale' && !($activeShift ?? null))
+@include('manage.layouts.partials.open-shift-modal')
+@endif
 <script src="{{ asset('js/suweka-workspace.js') }}" defer></script>
 </body></html>

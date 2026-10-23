@@ -92,7 +92,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // ---------------
-        // Held sales count for the sale module sidebar
+        // Held sales count and open shift for the sale module shell
         // ---------------
         View::composer('manage.layouts.workspace', function ($view) {
             $user = auth()->user();
@@ -103,9 +103,14 @@ class AppServiceProvider extends ServiceProvider
 
             $staffId = DB::table('su_staff')->where('user_id', $user->id)->where('is_active', 1)->value('id');
 
-            $view->with('heldSalesCount', $staffId
-                ? DB::table('su_sales')->where('status', 'held')->where('staff_id', $staffId)->count()
-                : 0);
+            $view->with([
+                'heldSalesCount' => $staffId
+                    ? DB::table('su_sales')->where('status', 'held')->where('staff_id', $staffId)->count()
+                    : 0,
+                'activeShift' => $staffId
+                    ? DB::table('su_shifts')->where('staff_id', $staffId)->where('is_closed', 0)->latest('id')->first()
+                    : null,
+            ]);
         });
     }
 
