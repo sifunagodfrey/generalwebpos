@@ -148,14 +148,22 @@ class SaleSubmoduleController extends Controller
         $this->permission($request, 'pos.sales.view');
         $sale = DB::table('su_sales')->where('id', $saleId)->where('status', 'completed')->first();
         abort_unless($sale, 404);
+        
         $lines = DB::table('su_sale_items as i')->leftJoin('su_products as p', 'p.id', '=', 'i.product_id')
             ->leftJoin('su_product_variants as v', 'v.id', '=', 'i.variant_id')
             ->where('i.sale_id', $saleId)->select('i.*', 'p.name as product_name', 'v.name as variant_name')->get();
+            
         $alreadyReturned = DB::table('su_returns_refunds')->where('sale_id', $saleId)->select('sale_item_id')
             ->selectRaw('SUM(quantity) as returned_quantity')->groupBy('sale_item_id')->pluck('returned_quantity', 'sale_item_id');
-        return view('manage.sales.returns.show', $this->layout('returns', compact('sale', 'lines', 'alreadyReturned')));
-    }
 
+        $history = DB::table('su_returns_refunds')->where('sale_id', $saleId)->orderByDesc('id')->get();
+            
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(compact('sale', 'lines', 'alreadyReturned', 'history'));
+        }
+
+        return view('manage.sales.returns.show', $this->layout('returns', compact('sale', 'lines', 'alreadyReturned', 'history')));
+    }
     public function discounts(Request $request)
     {
         $this->permission($request, 'pos.sales.view');
