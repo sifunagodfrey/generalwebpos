@@ -1,0 +1,7 @@
+# Allow direct access to files (no rewrites)
+RewriteEngine Off
+
+# Allow CORS
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+</IfModule>

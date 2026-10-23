@@ -1,0 +1,5 @@
+@php $searchLabel=$module==='staff'?'Search staff by name or role':'Search '.$module; @endphp
+<div class="sw-search-card"><div class="sw-search"><i class="fa-solid fa-magnifying-glass"></i><input oninput="swSearch(this,'sw-person')" placeholder="{{ $searchLabel }}"></div></div>
+<div class="sw-people-list">@forelse($records as $person)
+<div class="sw-person sw-person-row" data-search="{{ strtolower(trim(($person->first_name??'').' '.($person->last_name??'').' '.($person->phone??''))) }}"><i class="fa-solid fa-{{ $module==='suppliers'?'truck':'user' }}"></i><div><strong>{{ trim(($person->first_name??'').' '.($person->last_name??''))?:($person->name??'Record') }}</strong><small>{{ $module==='staff'?($person->role??'Staff'):($person->phone??'') }}</small></div><span class="sw-person-status">{{ $module==='customers'?(((float)($person->credit_balance??0)>0)?'Owing '.number_format($person->credit_balance):'Paid up'):'' }}</span><i class="fa-solid fa-chevron-right sw-chevron"></i></div>
+@empty<div class="sw-empty">No records found.</div>@endforelse</div>

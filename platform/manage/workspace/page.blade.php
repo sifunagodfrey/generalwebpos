@@ -1,0 +1,28 @@
+@extends('manage.layouts.workspace')
+@php $title=$item[1];$subtitles=['sale'=>'Sales and receipts','dashboard'=>'Today at a glance','inventory'=>'Products, stock and backorders','customers'=>'Profiles and credit tabs','suppliers'=>'Profiles and purchase orders','staff'=>'Accounts and roles','cashbox'=>"This device's current shift",'documents'=>'','reports'=>'Every report, at a glance','settings'=>'']; @endphp
+@section('title',$title)
+@section('heading',$title)
+@section('subtitle',$subtitles[$module]??'')
+@section('content')
+@if($module==='sale' && $page==='new')
+@include('manage.workspace.partials.sale')
+@elseif($module==='inventory' && $page==='products')
+@include('manage.inventory.products.index')
+@elseif($module==='customers' && $page==='index')
+@include('manage.customers.index')
+@elseif($module==='suppliers' && $page==='index')
+@include('manage.suppliers.index')
+@elseif($module==='dashboard' || $module==='reports')
+@include('manage.workspace.partials.analytics')
+@elseif($module==='cashbox' && $page==='index')
+@include('manage.workspace.partials.cashbox')
+@elseif($module==='settings' && $page==='vat')
+@include('manage.workspace.partials.vat')
+@elseif(in_array($module,['customers','suppliers','staff']))
+@include('manage.workspace.partials.people')
+@elseif($module==='documents')
+@include('manage.workspace.partials.documents')
+@else
+@include('manage.workspace.partials.generic')
+@endif
+@endsection

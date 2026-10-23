@@ -1,0 +1,40 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Handle X-XSRF-Token Header
+    RewriteCond %{HTTP:x-xsrf-token} .
+    RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Serve a real file under public/ directly, before falling through
+    # to the front controller below. The document root here is the
+    # project root, not public/ (a common setup on hosting that can't
+    # point a domain at a subfolder), but every uploaded file and every
+    # built asset actually lives under public/. Without this rule,
+    # requesting one of those URLs checks for the file starting from
+    # the project root, doesn't find it there, and falls through to
+    # Laravel's own router instead, which has no matching route,
+    # rendering Laravel's own styled 404 page rather than serving the
+    # file. This is what made a Hold Media track that genuinely exists
+    # on disk, confirmed present by Laravel's own PHP-level check,
+    # 404 for a real caller and for anyone opening the URL directly.
+    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f
+    RewriteRule ^(.*)$ public/$1 [L]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>

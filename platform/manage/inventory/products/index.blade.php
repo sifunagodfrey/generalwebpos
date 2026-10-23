@@ -1,0 +1,7 @@
+<form class="sw-search-card" method="GET" action="{{ route('manage.workspace.inventory',['page'=>'products']) }}"><div class="sw-search"><i class="fa-solid fa-magnifying-glass"></i><input name="q" value="{{ $search ?? '' }}" placeholder="Search products" aria-label="Search products"></div></form>
+<div class="sw-product-grid">
+@forelse($records as $product)
+<article class="sw-product-card"><div class="sw-product-image"><i class="fa-solid fa-qrcode" aria-hidden="true"></i></div><div class="sw-product-details"><b title="{{ $product->name }}">{{ $product->name }}</b><small>{{ $product->has_variants ? 'Has variants' : 'Product' }}</small><strong>{{ number_format((float)$product->selling_price,0) }}</strong></div></article>
+@empty<div class="sw-empty">No matching products found.</div>@endforelse
+</div>
+<div class="sw-page-tools"><span>{{ $records->firstItem() ?? 0 }}–{{ $records->lastItem() ?? 0 }} of {{ $records->total() }}</span><nav class="sw-pager" aria-label="Product pages"><a @if(!$records->previousPageUrl()) aria-disabled="true" @else href="{{ $records->previousPageUrl() }}" @endif aria-label="Previous page"><i class="fa-solid fa-chevron-left"></i></a><a @if(!$records->nextPageUrl()) aria-disabled="true" @else href="{{ $records->nextPageUrl() }}" @endif aria-label="Next page"><i class="fa-solid fa-chevron-right"></i></a><a href="{{ route('manage.workspace.inventory',['page'=>'products']) }}" aria-label="Reset search"><i class="fa-solid fa-rotate-right"></i></a></nav></div>

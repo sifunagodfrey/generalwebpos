@@ -1,0 +1,1836 @@
+/* -------------------
+   Suweka POS
+   Maximum Durability!
+
+   Theme stylesheet. Colour and type tokens are declared once at the top and
+   every component below reads from them, so a palette change is a one line
+   edit. Nothing in this file uses a corner radius: the product is folded
+   steel sheet, so every surface reads as a cut edge.
+------------------- */
+
+/* -------------------
+   Fonts
+------------------- */
+@import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap");
+/* -------------------
+   Font Awesome
+------------------- */
+@import "@fortawesome/fontawesome-free/css/all.min.css";
+
+/* -------------------
+   Tailwind
+------------------- */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* -------------------
+   Tokens
+
+   Purple carries the brand and takes every primary action, active state and
+   accent, straight from the logo mark. Lavender is the supporting voice: it
+   carries headings, the footer, dark surfaces, and a muted steel-blue variant
+   for secondary actions and informational marks.
+------------------- */
+:root {
+    --primary-color: #713FCE;
+    --primary-dark: #592CAC;
+    --primary-deep: #442181;
+    --primary-light: #F3EBFC;
+
+    --secondary-color: #AD70D4;
+    --secondary-dark: #9255BF;
+    --secondary-deep: #75429D;
+    --secondary-light: #F6EEFA;
+
+    --ink-color: #161d45;
+    --ink-soft: #404666;
+
+    /* Fixed dark navy for overlays, tooltips, and chrome that must stay
+       dark in both themes, unlike ink-color this never flips, it exists
+       precisely so backgrounds don't go white-on-white in dark mode */
+    --overlay-color: #161d45;
+    --overlay-color-rgb: 22 29 69;
+    --page-bg: #f8f9fa;
+    --surface: #ffffff;
+    --background-color: #f8f9fa;
+    --text-color: #161d45;
+    --muted-color: #7f8399;
+    --border-color: #d5d6de;
+    --band-grey: #f8f9fa;
+    --steel-dark: #e8e7ea;
+
+    --font-heading: "Lato", ui-sans-serif, system-ui, sans-serif;
+    --font-body: "Lato", ui-sans-serif, system-ui, sans-serif;
+    --font-ui: "Lato", ui-sans-serif, system-ui, sans-serif;
+
+    --edge: 0px;
+    --rule: 2px;
+    --card-radius: 4px;
+
+    /* -------------------
+       RGB channel triplets, no # and no rgb() wrapper.
+       Tailwind's colour opacity modifiers (bg-primary/10, bg-ink/50, and so
+       on) need the raw channels to build rgb(var(...) / alpha) itself; the
+       hex custom properties above can't carry an alpha channel on their own.
+    ------------------- */
+    --primary-color-rgb: 113 63 206;
+    --primary-dark-rgb: 89 44 172;
+    --primary-deep-rgb: 68 33 129;
+    --primary-light-rgb: 243 235 252;
+
+    --secondary-color-rgb: 173 112 212;
+    --secondary-dark-rgb: 146 85 191;
+    --secondary-deep-rgb: 117 66 157;
+    --secondary-light-rgb: 246 238 250;
+
+    --ink-color-rgb: 22 29 69;
+    --ink-soft-rgb: 64 70 102;
+    --muted-color-rgb: 127 131 153;
+
+    --band-grey-rgb: 248 249 250;
+    --steel-dark-rgb: 232 231 234;
+    --border-color-rgb: 213 214 222;
+    --surface-rgb: 255 255 255;
+}
+
+.dark {
+    --primary-color: #713FCE;
+    --primary-dark: #592CAC;
+    --primary-light: #F3EBFC;
+
+    --secondary-color: #AD70D4;
+    --secondary-dark: #9255BF;
+    --secondary-deep: #75429D;
+    --secondary-light: #F6EEFA;
+
+    --ink-color: #fffdf9;
+    --ink-soft: #bebec7;
+
+    /* Same value as light mode, on purpose, this must stay dark navy in
+       both themes */
+    --overlay-color: #161d45;
+    --overlay-color-rgb: 22 29 69;
+
+    --page-bg: #0e132d;
+    --surface: #13193b;
+    --background-color: #0e132d;
+    --text-color: #fffdf9;
+    --muted-color: #acaebd;
+    --border-color: #404666;
+    --band-grey: #161d45;
+    --steel-dark: #141b3f;
+
+    --primary-color-rgb: 113 63 206;
+    --primary-dark-rgb: 89 44 172;
+    --primary-light-rgb: 243 235 252;
+
+    --secondary-color-rgb: 173 112 212;
+    --secondary-dark-rgb: 146 85 191;
+    --secondary-deep-rgb: 117 66 157;
+    --secondary-light-rgb: 246 238 250;
+
+    --ink-color-rgb: 255 253 249;
+    --ink-soft-rgb: 190 190 199;
+    --muted-color-rgb: 172 174 189;
+
+    --band-grey-rgb: 22 29 69;
+    --steel-dark-rgb: 20 27 63;
+    --border-color-rgb: 64 70 102;
+    --surface-rgb: 19 25 59;
+}
+
+/* -------------------
+   Base
+------------------- */
+@layer base {
+    html {
+        font-family: var(--font-body);
+        font-weight: 400;
+        scroll-behavior: smooth;
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        background-color: var(--page-bg);
+        color: var(--text-color);
+        font-family: var(--font-body);
+        /* An angled block or a wide row must never make the page scroll sideways */
+        overflow-x: hidden;
+    }
+
+    h1,
+    h2 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.015em;
+        color: var(--ink-color);
+    }
+
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: var(--font-heading);
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        color: var(--ink-color);
+    }
+
+    .dark h1,
+    .dark h2,
+    .dark h3,
+    .dark h4,
+    .dark h5,
+    .dark h6 {
+        color: var(--text-color);
+    }
+
+    button,
+    label,
+    .btn,
+    input[type="submit"],
+    input[type="button"] {
+        font-family: var(--font-ui);
+        font-weight: 600;
+    }
+
+    /* -------------------
+       Squared corners. Tailwind's radius scale is already flattened in the
+       config; this covers native controls and any inline style that slips
+       through. The is-round helper is the single escape hatch.
+    ------------------- */
+    input,
+    select,
+    textarea,
+    button,
+    .btn,
+    .card,
+    img,
+    fieldset {
+        border-radius: var(--edge);
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 2px;
+    }
+
+    ::selection {
+        background: var(--primary-color);
+        color: #ffffff;
+    }
+}
+
+/* -------------------
+   Escape hatch for the few elements that must stay circular, such as
+   avatars and loading spinners.
+------------------- */
+.is-round {
+    border-radius: 9999px !important;
+}
+
+/* -------------------
+   Layout wrapper
+   Centres content inside every band so nothing touches the screen edge.
+------------------- */
+.hm-wrap,
+.nm-wrap {
+    max-width: 80rem;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+}
+
+@media (min-width: 768px) {
+
+    .hm-wrap,
+    .nm-wrap {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+}
+
+/* -------------------
+   Section bands
+   White is the page default. A grey band carries a pale fill and a shallow
+   angled top and bottom edge so the join reads as a roof pitch rather than a
+   straight rule. Vertical padding absorbs the slope so content never sits
+   under it, and the negative margin closes the gap to the next band.
+------------------- */
+.hm-band,
+.nm-band {
+    position: relative;
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+}
+
+.hm-band--grey,
+.nm-band--grey {
+    background-color: var(--band-grey);
+    clip-path: polygon(0 2rem, 100% 0, 100% calc(100% - 2rem), 0 100%);
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+    margin-top: -1.75rem;
+    margin-bottom: -1.75rem;
+}
+
+.nm-band--ink {
+    background-color: var(--ink-color);
+    color: #e8edef;
+}
+
+.nm-band--ink h1,
+.nm-band--ink h2,
+.nm-band--ink h3 {
+    color: #ffffff;
+}
+
+/* -------------------
+   Reveal on scroll
+
+   A very small fade and lift, applied once as a section first enters view.
+   Kept subtle on purpose, and skipped entirely for anyone who has asked
+   their system to reduce motion.
+------------------- */
+.nm-reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.nm-reveal.nm-reveal--visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nm-reveal {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+}
+
+@media (min-width: 768px) {
+
+    .hm-band,
+    .nm-band {
+        padding-top: 5.5rem;
+        padding-bottom: 5.5rem;
+    }
+
+    .hm-band--grey,
+    .nm-band--grey {
+        clip-path: polygon(0 3rem, 100% 0, 100% calc(100% - 3rem), 0 100%);
+        padding-top: 8rem;
+        padding-bottom: 8rem;
+        margin-top: -2.5rem;
+        margin-bottom: -2.5rem;
+    }
+}
+
+/* -------------------
+   Profile rule
+   The signature mark of the site. A repeating trapezoid drawn in gradients
+   that traces the ridge of a box profile sheet. Sits under section headings
+   and between major blocks in place of a plain divider.
+------------------- */
+.nm-profile-rule {
+    height: 9px;
+    width: 84px;
+    background-color: var(--primary-color);
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 9'%3E%3Cpath d='M0 9V6l7-6 7 6 7-6 7 6v3z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 9'%3E%3Cpath d='M0 9V6l7-6 7 6 7-6 7 6v3z'/%3E%3C/svg%3E");
+    -webkit-mask-size: 28px 9px;
+    mask-size: 28px 9px;
+    -webkit-mask-repeat: repeat-x;
+    mask-repeat: repeat-x;
+}
+
+.nm-profile-rule--wide {
+    width: 100%;
+}
+
+.nm-profile-rule--teal {
+    background-color: var(--secondary-color);
+}
+
+/* -------------------
+   Corrugated band
+   Fine vertical ribbing used as a texture behind small dark panels and
+   section headers. Reads as sheet metal without carrying an image.
+------------------- */
+.nm-corrugated {
+    background-image: repeating-linear-gradient(90deg,
+            rgba(255, 255, 255, 0.05) 0px,
+            rgba(255, 255, 255, 0.05) 3px,
+            rgba(0, 0, 0, 0.06) 3px,
+            rgba(0, 0, 0, 0.06) 8px);
+}
+
+/* -------------------
+   Breadcrumb rail
+   Each crumb is cut into an arrow pointing at the next one, chained with a
+   small gap rather than tessellated edge to edge, so the shape stays crisp
+   at any zoom level without needing pixel perfect alignment between
+   segments. The current page reads in solid brand colour, everything
+   before it sits quiet until hovered.
+------------------- */
+.nm-crumbs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.nm-crumb {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4rem 1.1rem 0.4rem 0.9rem;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--muted-color);
+    background-color: var(--band-grey);
+    text-decoration: none;
+    clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.nm-crumb:first-child {
+    padding-left: 0.75rem;
+}
+
+a.nm-crumb:hover {
+    background-color: var(--primary-color);
+    color: #ffffff;
+}
+
+.nm-crumb--current {
+    background-color: var(--primary-color);
+    color: #ffffff;
+}
+
+/* -------------------
+   Type helpers
+------------------- */
+.hm-eyebrow,
+.nm-eyebrow {
+    font-family: var(--font-ui);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.hm-title,
+.nm-title {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    letter-spacing: -0.015em;
+}
+
+.hm-head,
+.nm-head {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--ink-color);
+}
+
+.nm-lead {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: var(--muted-color);
+}
+
+.nm-price {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    color: var(--primary-color);
+    letter-spacing: -0.02em;
+}
+
+.nm-price__unit {
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 0.75rem;
+    color: var(--muted-color);
+    text-transform: lowercase;
+    letter-spacing: 0;
+}
+
+.nm-price__was {
+    font-weight: 500;
+    font-size: 0.8rem;
+    color: var(--muted-color);
+    text-decoration: line-through;
+}
+
+/* -------------------
+   Buttons
+   Square, weighted, no radius. The primary is solid red and does the work;
+   the outline and teal variants stay quiet beside it.
+------------------- */
+.btn,
+.nm-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 0.8125rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: 2px solid transparent;
+    border-radius: 0;
+    cursor: pointer;
+    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.btn:disabled,
+.nm-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.nm-btn--primary {
+    background-color: var(--primary-color);
+    color: #ffffff;
+    border-color: var(--primary-color);
+}
+
+.nm-btn--primary:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+.nm-btn--outline {
+    background-color: transparent;
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.nm-btn--outline:hover {
+    background-color: var(--primary-color);
+    color: #ffffff;
+}
+
+.nm-btn--secondary {
+    background-color: var(--secondary-color);
+    color: #ffffff;
+    border-color: var(--secondary-color);
+}
+
+.nm-btn--secondary:hover {
+    background-color: var(--secondary-dark);
+    border-color: var(--secondary-dark);
+}
+
+.nm-btn--ink {
+    background-color: var(--ink-color);
+    color: #ffffff;
+    border-color: var(--ink-color);
+}
+
+.nm-btn--ink:hover {
+    background-color: var(--ink-soft);
+    border-color: var(--ink-soft);
+}
+
+.nm-btn--ghost {
+    background-color: transparent;
+    color: var(--ink-color);
+    border-color: var(--border-color);
+}
+
+.nm-btn--ghost:hover {
+    border-color: var(--ink-color);
+}
+
+.nm-btn--sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.7rem;
+}
+
+.nm-btn--lg {
+    padding: 0.95rem 2rem;
+    font-size: 0.875rem;
+}
+
+.nm-btn--block {
+    width: 100%;
+}
+
+/* -------------------
+   Surfaces
+   A card is a plain panel with a hairline border. On hover the top edge
+   thickens into a red rule rather than the card lifting or rounding.
+------------------- */
+.nm-card {
+    position: relative;
+    background-color: var(--surface);
+    border: 1px solid transparent;
+    border-top: var(--rule) solid transparent;
+    border-radius: var(--card-radius);
+    box-shadow: 0 1px 3px 0 rgba(22, 29, 69, 0.08);
+    transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.dark .nm-card {
+    border-color: var(--border-color);
+    box-shadow: none;
+}
+
+/* -------------------
+   On hover the top edge becomes a red rule and the surface takes a light
+   red wash. The wash is kept weak on purpose so the text on the card stays
+   legible against it.
+------------------- */
+.nm-card:hover {
+    border-top-color: var(--primary-color);
+    background-color: rgba(247, 175, 57, 0.05);
+    box-shadow: 0 10px 28px -14px rgba(22, 29, 69, 0.28);
+}
+
+.nm-card__body {
+    padding: 1.25rem;
+}
+
+.nm-card--flat:hover {
+    box-shadow: none;
+}
+
+.nm-panel {
+    background-color: var(--surface);
+    border: 1px solid transparent;
+    border-radius: var(--card-radius);
+    box-shadow: 0 1px 3px 0 rgba(22, 29, 69, 0.08);
+}
+
+.dark .nm-panel {
+    border-color: var(--border-color);
+    box-shadow: none;
+}
+
+.nm-panel__head {
+    padding: 0.875rem 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 0.8125rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-color);
+}
+
+.nm-panel__body {
+    padding: 1.25rem;
+}
+
+/* -------------------
+   Badges and marks
+------------------- */
+.nm-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.6rem;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-radius: 0;
+}
+
+.nm-badge--primary {
+    background-color: var(--primary-color);
+    color: #ffffff;
+}
+
+.nm-badge--tint {
+    background-color: var(--primary-light);
+    color: var(--primary-dark);
+}
+
+.nm-badge--secondary {
+    background-color: var(--secondary-color);
+    color: #ffffff;
+}
+
+.nm-badge--secondary-tint {
+    background-color: var(--secondary-light);
+    color: var(--secondary-dark);
+}
+
+.nm-badge--ink {
+    background-color: var(--ink-color);
+    color: #ffffff;
+}
+
+.nm-badge--outline {
+    border: 1px solid var(--border-color);
+    color: var(--muted-color);
+}
+
+/* -------------------
+   Gauge chip
+   Small square mark used on product cards to show G28 or G30 at a glance.
+------------------- */
+.nm-gauge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.4rem;
+    padding: 0.2rem 0.4rem;
+    font-family: var(--font-ui);
+    font-weight: 800;
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    color: var(--ink-color);
+    border: 1px solid var(--border-color);
+    background-color: var(--band-grey);
+}
+
+/* -------------------
+   Colour swatch
+   Square by design so the sample reads as a cut piece of coated sheet.
+------------------- */
+.nm-swatch {
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: outline-color 0.15s ease;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+}
+
+.nm-swatch:hover {
+    outline-color: var(--border-color);
+}
+
+.nm-swatch--active {
+    outline-color: var(--primary-color);
+}
+
+.nm-swatch--lg {
+    width: 2.75rem;
+    height: 2.75rem;
+}
+
+/* -------------------
+   Forms
+------------------- */
+.nm-label {
+    display: block;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-color);
+    margin-bottom: 0.4rem;
+}
+
+.nm-input,
+.nm-select,
+.nm-textarea {
+    width: 100%;
+    padding: 0.7rem 0.85rem;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--text-color);
+    background-color: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: 0;
+    transition: border-color 0.15s ease;
+}
+
+/*
+For an input with an icon positioned inside it (an envelope, a lock,
+a show/hide password toggle, etc.), the icon sits at left-3.5 or
+right-3 (see login.blade.php and both forgot-password views), which
+needs real room to its inner side or the icon and the typed text
+overlap. Tailwind's own pl-10/pr-10 utilities were being used for
+this, but Tailwind's utility layer loads before this file's own
+.nm-input rule in the compiled stylesheet, so at equal specificity
+.nm-input's own padding shorthand was silently winning and the
+utility classes had no effect at all, regardless of which class was
+listed last on the element itself. These modifiers live in the same
+place as .nm-input's own rule, immediately after it, so they always
+correctly override it.
+*/
+.nm-input--icon-left {
+    padding-left: 2.5rem;
+}
+
+.nm-input--icon-right {
+    padding-right: 2.5rem;
+}
+
+.nm-input:focus,
+.nm-select:focus,
+.nm-textarea:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: inset 0 -2px 0 0 var(--primary-color);
+}
+
+.nm-input::placeholder,
+.nm-textarea::placeholder {
+    color: var(--muted-color);
+    opacity: 0.75;
+}
+
+.nm-help {
+    font-size: 0.75rem;
+    color: var(--muted-color);
+    margin-top: 0.3rem;
+}
+
+.nm-error {
+    font-size: 0.75rem;
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-top: 0.3rem;
+}
+
+/* -------------------
+   Length picker
+   Preset sheet lengths sit in a row of square chips with a custom entry at
+   the end, matching how a buyer actually orders: pick a length, then a
+   number of pieces.
+------------------- */
+.nm-lengths {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.nm-length {
+    min-width: 3.75rem;
+    padding: 0.55rem 0.75rem;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-align: center;
+    color: var(--ink-color);
+    background-color: var(--surface);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.nm-length:hover {
+    border-color: var(--ink-color);
+}
+
+.nm-length--active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #ffffff;
+}
+
+/* -------------------
+   Quantity stepper
+------------------- */
+.nm-stepper {
+    display: inline-flex;
+    align-items: stretch;
+    border: 1px solid var(--border-color);
+}
+
+.nm-stepper button {
+    width: 2.5rem;
+    background-color: var(--band-grey);
+    color: var(--ink-color);
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.nm-stepper button:hover {
+    background-color: var(--primary-color);
+    color: #ffffff;
+}
+
+.nm-stepper input {
+    width: 4rem;
+    text-align: center;
+    border: none;
+    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    font-family: var(--font-ui);
+    font-weight: 700;
+    background-color: var(--surface);
+    color: var(--text-color);
+}
+
+.nm-stepper input:focus {
+    outline: none;
+}
+
+/* -------------------
+   Step rail
+   Progress marker for the quotation builder. The steps are a real sequence,
+   so they are numbered.
+------------------- */
+.nm-steps {
+    display: flex;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.nm-step {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: var(--muted-color);
+    background-color: var(--band-grey);
+    border-right: 1px solid var(--border-color);
+}
+
+.nm-step:last-child {
+    border-right: none;
+}
+
+.nm-step__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    font-weight: 800;
+    font-size: 0.7rem;
+    color: #ffffff;
+    background-color: var(--muted-color);
+    flex-shrink: 0;
+}
+
+.nm-step--active {
+    background-color: var(--surface);
+    color: var(--ink-color);
+    box-shadow: inset 0 -3px 0 0 var(--primary-color);
+}
+
+.nm-step--active .nm-step__num {
+    background-color: var(--primary-color);
+}
+
+.nm-step--done {
+    color: var(--secondary-dark);
+}
+
+.nm-step--done .nm-step__num {
+    background-color: var(--secondary-color);
+}
+
+@media (max-width: 767px) {
+    .nm-step__label {
+        display: none;
+    }
+
+    .nm-step {
+        justify-content: center;
+    }
+}
+
+/* -------------------
+   Tables
+------------------- */
+.nm-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.nm-table th {
+    text-align: left;
+    padding: 0.75rem 0.9rem;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-color);
+    background-color: var(--band-grey);
+    border-bottom: 2px solid var(--primary-color);
+    white-space: nowrap;
+}
+
+/* Wins over .nm-table th's left-align through specificity (class+element
+   vs class+element+class) rather than source order, so a numeric or
+   actions header reliably lines up with the cells beneath it instead of
+   being overridden back to the left */
+.nm-table th.nm-table__num {
+    text-align: right;
+}
+
+.nm-table td {
+    padding: 0.8rem 0.9rem;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+}
+
+.nm-table tbody tr:nth-child(even) {
+    background-color: rgb(var(--band-grey-rgb) / 0.5);
+}
+
+.nm-table tbody tr:hover {
+    background-color: var(--band-grey);
+    box-shadow: inset 3px 0 0 var(--primary-color);
+}
+
+.nm-table__num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* -------------------
+   Rails
+   One row horizontal scrollers used for categories and product lists.
+------------------- */
+.hm-rail,
+.nm-rail {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.25rem;
+}
+
+.hm-rail::-webkit-scrollbar,
+.nm-rail::-webkit-scrollbar {
+    display: none;
+}
+
+.hm-rail>*,
+.nm-rail>* {
+    scroll-snap-align: start;
+}
+
+.hm-card,
+.nm-rail-card {
+    width: 78%;
+    flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+
+    .hm-card,
+    .nm-rail-card {
+        width: 44%;
+    }
+}
+
+@media (min-width: 768px) {
+
+    .hm-card,
+    .nm-rail-card {
+        width: 30%;
+    }
+}
+
+@media (min-width: 1024px) {
+
+    .hm-card,
+    .nm-rail-card {
+        width: 23.2%;
+    }
+}
+
+/* -------------------
+   Promotional popup
+   The image is authored at a two by one ratio and the frame holds that
+   ratio at every width.
+------------------- */
+.nm-popup {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    background-color: rgba(22, 29, 69, 0.78);
+}
+
+.nm-popup__frame {
+    position: relative;
+    width: 100%;
+    max-width: 40rem;
+    background-color: var(--surface);
+    border-top: 4px solid var(--primary-color);
+    border-radius: var(--card-radius);
+    overflow: hidden;
+}
+
+.nm-popup__media {
+    display: block;
+    width: 100%;
+    aspect-ratio: 2 / 1;
+    object-fit: cover;
+}
+
+.nm-popup__close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    background-color: var(--primary-color);
+    border: none;
+    cursor: pointer;
+}
+
+.nm-popup__close:hover {
+    background-color: var(--primary-dark);
+}
+
+/* -------------------
+   Floating WhatsApp action
+   Square to stay consistent with the rest of the interface.
+------------------- */
+.nm-whatsapp {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 9990;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.1rem;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #ffffff;
+    background-color: #128c7e;
+    box-shadow: 0 10px 28px -14px rgba(22, 29, 69, 0.6);
+}
+
+.nm-whatsapp:hover {
+    background-color: #0f7568;
+}
+
+@media (max-width: 767px) {
+    .nm-whatsapp {
+        bottom: 1.25rem;
+    }
+}
+
+/* -------------------
+   Toast
+------------------- */
+.nm-toast {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 5rem;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1.25rem;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #ffffff;
+    background-color: var(--ink-color);
+    border-left: 4px solid var(--primary-color);
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+@media (min-width: 768px) {
+    .nm-toast {
+        bottom: 2rem;
+    }
+}
+
+/* -------------------
+   Footer
+------------------- */
+.nm-footer {
+    background-color: var(--ink-color);
+    color: #b9c6cc;
+    border-top: 4px solid var(--primary-color);
+}
+
+.nm-footer a {
+    color: #b9c6cc;
+    transition: color 0.15s ease;
+}
+
+.nm-footer a:hover {
+    color: #ffffff;
+}
+
+.nm-footer__heading {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #ffffff;
+    margin-bottom: 1rem;
+}
+
+.nm-social {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    color: var(--primary-color);
+    background-color: rgba(255, 255, 255, 0.08);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.nm-social:hover {
+    background-color: var(--secondary-color);
+    color: #ffffff;
+}
+
+/* -------------------
+   Admin sidebar
+------------------- */
+.sidebar-transition {
+    transition: width 0.3s ease;
+}
+
+/* -------------------
+   Dark mode gets a quiet vertical gradient between two shades of the brand
+   navy, deep at the top fading to the ordinary panel navy by the bottom, so
+   the sidebar reads as a distinct surface without needing a loud border to
+   separate it from the page.
+------------------- */
+.nm-sidebar {
+    background-color: var(--surface);
+}
+
+.dark .nm-sidebar {
+    background: linear-gradient(180deg, #0b0f24 0%, var(--surface) 65%);
+}
+
+/* -------------------
+   Light mode carries the brand into the chrome instead of leaving the rail
+   and bar plain white: both sit on the same navy the logo and dark mode
+   already use, so the token set below is simply dark mode's chrome palette
+   borrowed for a background that isn't tied to the page theme toggle.
+   Anything inside a floating panel (dropdown-panel) resets straight back
+   to the ordinary light tokens, since those panels sit on their own white
+   surface regardless of what the bar or rail behind them is doing.
+------------------- */
+html:not(.dark) .nm-sidebar,
+html:not(.dark) .nm-topbar {
+    --ink-color: #fffdf9;
+    --ink-soft: #bebec7;
+    --muted-color: #acaebd;
+    --steel-dark: #141b3f;
+    --band-grey: #161d45;
+    --border-color: #404666;
+    --secondary-color: #AD70D4;
+    --secondary-light: #F6EEFA;
+}
+
+html:not(.dark) .nm-sidebar {
+    background-color: var(--secondary-dark);
+}
+
+html:not(.dark) .nm-sidebar .dropdown-panel,
+html:not(.dark) .nm-topbar .dropdown-panel,
+html:not(.dark) .nm-topbar .nm-modal-overlay {
+    --ink-color: #161d45;
+    --ink-soft: #404666;
+    --muted-color: #7f8399;
+    --steel-dark: #e8e7ea;
+    --band-grey: #f8f9fa;
+    --border-color: #d5d6de;
+    --secondary-color: #AD70D4;
+    --secondary-light: #F6EEFA;
+}
+
+.nm-topbar {
+    background-color: var(--surface);
+}
+
+html:not(.dark) .nm-topbar {
+    background-color: var(--secondary-dark);
+}
+
+/* -------------------
+   Every actionable control living in the topbar reads as one family: a
+   full pill, matching the online toggle rather than the sharp corners
+   nm-btn uses everywhere else in the app. Scoped to .nm-topbar so this
+   never leaks into ordinary form buttons elsewhere on the page, and
+   placed after .nm-btn in the source so it actually wins the pill shape
+   back for any nm-btn a page pushes into the bar (Dial, for example).
+------------------- */
+.nm-topbar .nm-btn {
+    border-radius: 9999px;
+}
+
+/* -------------------
+   Softphone online state. The pill is the one place in the app that gets an
+   actual green rather than a brand tint, since it's reporting a real status
+   (reachable or not) rather than a category, and needs to read at a glance
+   against the navy topbar. Both states pulse gently, deliberately, so
+   nobody forgets which one they're in: online and browsing away from the
+   desk, or offline and missing calls without realising it.
+------------------- */
+.nm-online-badge {
+    background-color: rgba(34, 197, 94, 0.18);
+    color: #4ade80;
+    animation: nm-pulse-green 2.2s ease-in-out infinite;
+}
+
+.nm-online-dot {
+    background-color: #4ade80;
+}
+
+.nm-offline-badge {
+    background-color: rgba(220, 38, 38, 0.16);
+    color: #f87171;
+    animation: nm-pulse-red 2.2s ease-in-out infinite;
+}
+
+.nm-offline-dot {
+    background-color: #f87171;
+}
+
+@keyframes nm-pulse-green {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.55); }
+    50%      { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); }
+}
+
+@keyframes nm-pulse-red {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.5); }
+    50%      { box-shadow: 0 0 0 6px rgba(248, 113, 113, 0); }
+}
+
+/* -------------------
+   Search trigger. A pale field on the navy bar rather than an outline, so
+   it reads as an input rather than another nav control.
+------------------- */
+.nm-search-trigger {
+    background-color: #fdfcf9;
+    border-color: transparent;
+    color: #7f8399;
+}
+
+.nm-search-trigger:hover {
+    border-color: #161d45;
+}
+
+.nm-search-trigger kbd {
+    background-color: transparent;
+    border-color: #d5d6de;
+    color: #7f8399;
+}
+
+/* -------------------
+   Nav pill highlights. The current page (or an expanded parent) sits in a
+   solid navy pill; a sub item takes the same shape but in a soft brand
+   tint instead, so the hierarchy still reads without competing for
+   attention with the primary highlight.
+------------------- */
+.nm-nav-active {
+    background-color: var(--ink-color);
+    color: #ffffff;
+}
+
+.nm-nav-active i {
+    color: #ffffff;
+}
+
+.nm-nav-active--sub {
+    background-color: rgb(var(--primary-color-rgb) / 0.12);
+    color: var(--primary-color);
+}
+
+.dark .nm-nav-active,
+html:not(.dark) .nm-sidebar .nm-nav-active {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+.dark .nm-nav-active--sub,
+html:not(.dark) .nm-sidebar .nm-nav-active--sub {
+    background-color: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+}
+
+a.nm-nav-active:hover i,
+button.nm-nav-active:hover i {
+    color: #ffffff;
+}
+
+aside i {
+    color: var(--muted-color);
+    transition: color 0.2s ease;
+}
+
+aside a:hover i,
+aside button:hover i {
+    color: var(--primary-color);
+}
+
+aside a.bg-primary-light i {
+    color: var(--primary-color);
+}
+
+/* -------------------
+   Utilities
+------------------- */
+.dropdown-panel {
+    z-index: 9999;
+}
+
+/* -------------------
+   Same treatment as nm-card and nm-panel, for the plain Tailwind-built
+   surfaces (stat tiles, empty states, filter bars) that never got their
+   own component class. No border where the surface already reads as
+   white on a pale page, a soft shadow carries the edge instead.
+------------------- */
+.nm-surface {
+    background-color: var(--surface);
+    border-color: transparent;
+    box-shadow: 0 1px 3px 0 rgba(22, 29, 69, 0.08);
+}
+
+.dark .nm-surface {
+    border-color: var(--border-color);
+    box-shadow: none;
+}
+
+/* -------------------
+   Tinted dashboard tiles. A solid pastel fill rather than a translucent
+   one, so it reads the same regardless of what's behind the card. Dark
+   mode drops the tint and falls back to the ordinary panel surface, only
+   keeping the colour on the figure itself, since a bright pastel card
+   would fight the dark background instead of sitting on it.
+------------------- */
+.nm-tile--green {
+    background-color: #eafaf0;
+    border-color: transparent;
+    border-left-color: #16a34a;
+    box-shadow: 0 1px 3px 0 rgba(22, 29, 69, 0.08);
+}
+
+.nm-tile--green .nm-tile__value {
+    color: #15803d;
+}
+
+.nm-tile--green .nm-tile__icon {
+    background-color: rgba(22, 163, 74, 0.16);
+    color: #16a34a;
+}
+
+.nm-tile--red {
+    background-color: #fdecec;
+    border-color: transparent;
+    border-left-color: #dc2626;
+    box-shadow: 0 1px 3px 0 rgba(22, 29, 69, 0.08);
+}
+
+.nm-tile--red .nm-tile__value {
+    color: #dc2626;
+}
+
+.nm-tile--red .nm-tile__icon {
+    background-color: rgba(220, 38, 38, 0.16);
+    color: #dc2626;
+}
+
+.nm-tile--yellow {
+    background-color: #fef9e7;
+    border-color: transparent;
+    border-left-color: #ca8a04;
+    box-shadow: 0 1px 3px 0 rgba(22, 29, 69, 0.08);
+}
+
+.nm-tile--yellow .nm-tile__value {
+    color: #a16207;
+}
+
+.nm-tile--yellow .nm-tile__icon {
+    background-color: rgba(202, 138, 4, 0.18);
+    color: #a16207;
+}
+
+.nm-tile--orange {
+    background-color: #fef1e7;
+    border-color: transparent;
+    border-left-color: #ea580c;
+    box-shadow: 0 1px 3px 0 rgba(22, 29, 69, 0.08);
+}
+
+.nm-tile--orange .nm-tile__value {
+    color: #ea580c;
+}
+
+.nm-tile--orange .nm-tile__icon {
+    background-color: rgba(234, 88, 12, 0.16);
+    color: #ea580c;
+}
+
+.dark .nm-tile--green,
+.dark .nm-tile--red,
+.dark .nm-tile--yellow,
+.dark .nm-tile--orange {
+    background-color: var(--surface);
+    border-color: var(--border-color);
+    box-shadow: none;
+}
+
+.dark .nm-tile--green .nm-tile__value { color: #4ade80; }
+.dark .nm-tile--red .nm-tile__value { color: #f87171; }
+.dark .nm-tile--yellow .nm-tile__value { color: #facc15; }
+.dark .nm-tile--orange .nm-tile__value { color: #fb923c; }
+
+[x-cloak] {
+    display: none !important;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* -------------------
+   Print
+   Quotations, invoices, receipts and delivery notes are printed often, so
+   interface furniture is stripped and the sheet is set in black on white.
+------------------- */
+@media print {
+
+    .nm-no-print,
+    .nm-whatsapp,
+    .nm-popup,
+    header nav,
+    aside,
+    footer {
+        display: none !important;
+    }
+
+    body {
+        background: #ffffff;
+        color: #000000;
+        font-size: 11pt;
+    }
+
+    .nm-doc {
+        border: none;
+        padding: 0;
+    }
+
+    .nm-table th {
+        background-color: #f0f0f0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    a[href]::after {
+        content: "";
+    }
+
+    @page {
+        margin: 14mm;
+    }
+}
+
+/* -------------------
+   Reduced motion
+------------------- */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* -------------------
+   Category tile
+
+   The photograph carries the label. On hover the tile fills with white, the
+   text flips to the dark slate and a red action appears, so the whole tile
+   reads as one large button rather than a picture with a link on it.
+------------------- */
+.nm-cat {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border-radius: var(--card-radius);
+    background-color: var(--ink-color);
+}
+
+.nm-cat__media {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease, opacity 0.3s ease;
+}
+
+.nm-cat:hover .nm-cat__media {
+    transform: scale(1.06);
+}
+
+/* Resting state: a dark gradient so the label stays readable over any photo */
+.nm-cat__veil {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(22, 29, 69, 0.88) 0%, rgba(22, 29, 69, 0.25) 55%, rgba(22, 29, 69, 0.05) 100%);
+    transition: opacity 0.3s ease;
+}
+
+.nm-cat:hover .nm-cat__veil {
+    opacity: 0;
+}
+
+/* -------------------
+   Hover state: a translucent white wash rather than a solid fill, so the
+   photograph still reads through it and the tile does not lose its subject.
+------------------- */
+.nm-cat__fill {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(255, 255, 255, 0.82);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.nm-cat:hover .nm-cat__fill {
+    opacity: 1;
+}
+
+.nm-cat__body {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1.25rem;
+    transition: justify-content 0.3s ease;
+}
+
+.nm-cat__title {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 1.0625rem;
+    line-height: 1.25;
+    color: #ffffff;
+    transition: color 0.3s ease;
+}
+
+.nm-cat:hover .nm-cat__title {
+    color: var(--ink-color);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.nm-cat__count {
+    font-size: 0.6875rem;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+    transition: color 0.3s ease;
+}
+
+.nm-cat:hover .nm-cat__count {
+    color: var(--primary-color);
+}
+
+.nm-cat__action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.9rem;
+    padding: 0.5rem 1rem;
+    align-self: flex-start;
+    background-color: var(--primary-color);
+    color: #ffffff;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.nm-cat:hover .nm-cat__action {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* -------------------
+   Four across rail
+
+   Four tiles across from large upwards, two on a phone, scrolled sideways
+   with snap points so a card never comes to rest half off the screen.
+------------------- */
+.nm-rail-4>* {
+    width: calc(50% - 0.5rem);
+    flex-shrink: 0;
+    scroll-snap-align: start;
+}
+
+@media (min-width: 768px) {
+    .nm-rail-4>* {
+        width: calc(33.333% - 0.667rem);
+    }
+}
+
+@media (min-width: 1024px) {
+    .nm-rail-4>* {
+        width: calc(25% - 0.75rem);
+    }
+}
+
+.nm-rail-nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--surface);
+    color: var(--ink-color);
+    transition: all 0.15s ease;
+}
+
+.nm-rail-nav:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #ffffff;
+}
+
+/* -------------------
+   Curved card foot
+
+   A red wave closing the bottom of a service card. The shape is drawn with
+   a mask rather than an image so it takes the brand colour directly and
+   stays crisp at any width.
+------------------- */
+.nm-wave {
+    position: relative;
+    height: 26px;
+    background-color: var(--primary-color);
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 40' preserveAspectRatio='none'%3E%3Cpath d='M0 40V14c180 22 320-16 520-8s300 30 480 20c80-4 140-12 200-20v34z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 40' preserveAspectRatio='none'%3E%3Cpath d='M0 40V14c180 22 320-16 520-8s300 30 480 20c80-4 140-12 200-20v34z'/%3E%3C/svg%3E");
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+}
+
+/* -------------------
+   Service card
+   Photograph, then the copy, closed off by the wave.
+------------------- */
+.nm-service {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: var(--surface);
+    border: 1px solid var(--border-color);
+    border-top: var(--rule) solid transparent;
+    border-radius: var(--card-radius);
+    overflow: hidden;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.nm-service:hover {
+    border-top-color: var(--primary-color);
+    box-shadow: 0 14px 34px -18px rgba(22, 29, 69, 0.4);
+}
+
+.nm-service__media {
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background-color: var(--band-grey);
+}
+
+.nm-service__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+}
+
+.nm-service:hover .nm-service__media img {
+    transform: scale(1.06);
+}
+
+.nm-service__body {
+    flex: 1;
+    padding: 1.5rem 1.25rem 1.75rem;
+}
+
+/* -------------------
+   Overlay band
+   A photograph carrying a solid brand wash, used for the closing call to
+   action so it reads as a single block of colour rather than a picture.
+------------------- */
+.nm-overlay {
+    position: relative;
+    overflow: hidden;
+}
+
+.nm-overlay__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.nm-overlay__wash {
+    position: absolute;
+    inset: 0;
+    background-color: var(--primary-color);
+    opacity: 0.92;
+}
+
+/* Faint ribbing over the wash so it reads as coated sheet */
+.nm-overlay__wash::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.12;
+    background-image: repeating-linear-gradient(135deg, #fff 0 2px, transparent 2px 16px);
+}
