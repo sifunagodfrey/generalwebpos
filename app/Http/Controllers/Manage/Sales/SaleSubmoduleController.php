@@ -85,7 +85,12 @@ class SaleSubmoduleController extends Controller
                 ->when($search, fn ($q) => $q->where('p.name', 'like', '%'.$search.'%'))
                 ->orderByDesc('b.id')->paginate(20)->withQueryString();
         }
-        return view('manage.sales.backorders.index', $this->layout('backorders', compact('records', 'search', 'mode')));
+        // ---------------
+        // Customers for the Add request dialog
+        // ---------------
+        $customers = DB::table('su_customers')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'phone']);
+
+        return view('manage.sales.backorders.index', $this->layout('backorders', compact('records', 'search', 'mode', 'customers')));
     }
 
     public function createMissing(Request $request, SaleCheckoutService $service)
@@ -93,12 +98,34 @@ class SaleSubmoduleController extends Controller
         $this->permission($request, 'pos.sales.create');
         $data = $request->validate([
             'product_name' => 'required|string|max:250', 'product_id' => 'nullable|integer|exists:su_products,id',
-            'customer_id' => 'nullable|integer|exists:su_customers,id', 'note' => 'nullable|string|max:1500',
+            'customer_id' => 'nullable|integer|exists:su_customers,id', 'quantity' => 'required|numeric|min:0.01|max:999999',
+            'note' => 'nullable|string|max:1500',
         ]);
         $staffId = $service->staffId((int) $request->user()->id);
         if (!$staffId) throw ValidationException::withMessages(['staff' => 'An active staff account is required.']);
+
+        // ---------------
+        // The table has no quantity column, so it leads the note ("1.0" style)
+        // ---------------
+        $quantity = (float) $data['quantity'];
+        $label = str_contains((string) $quantity, '.') ? (string) $quantity : number_format($quantity, 1, '.', '');
+        $data['note'] = trim('Requested quantity: '.$label."\n".trim((string) ($data['note'] ?? '')));
+        unset($data['quantity']);
+
         DB::table('su_missing_stock_requests')->insert($data + ['requested_by_staff_id' => $staffId, 'created_at' => now()]);
         return redirect()->route('manage.sales.backorders', ['tab' => 'missing'])->with('status', 'Missing stock request saved.');
+    }
+
+    // ---------------
+    // Catalog matches for the Add request dialog
+    // ---------------
+    public function backorderProducts(Request $request)
+    {
+        $this->permission($request, 'pos.sales.view');
+        $term = mb_substr(trim((string) $request->query('q', '')), 0, 100);
+        if ($term === '') return response()->json([]);
+
+        return response()->json(DB::table('su_products')->where('name', 'like', '%'.$term.'%')->orderBy('name')->limit(8)->get(['id', 'name']));
     }
 
     public function returns(Request $request)

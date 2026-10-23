@@ -24,4 +24,5 @@ Route::post('/sale/discounts', [Pages::class, 'saveDiscount'])->name('manage.sal
 Route::get('/sale/discounts/{discountId}/edit', [Pages::class, 'discountForm'])->name('manage.sales.discounts.edit');
 Route::put('/sale/discounts/{discountId}', [Pages::class, 'saveDiscount'])->name('manage.sales.discounts.update');
 Route::delete('/sale/discounts/{discountId}', [Pages::class, 'deleteDiscount'])->name('manage.sales.discounts.destroy');
+Route::get('/sale/backorders/products', [Pages::class, 'backorderProducts'])->name('manage.sales.backorders.products');
 Route::get('/sale/{page?}', [Sales::class, 'navigate'])->name('manage.workspace.sale');
