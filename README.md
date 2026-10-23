@@ -1,25 +1,23 @@
-# General POS cleanup — no-backup version
+# General POS
 
-**Warning:** Applying this script permanently deletes listed call-center files and overwrites the included POS starter files. It creates **no backup**. It does not change database tables or user/password records. Use only if you have your own independently verified backup.
+Manage retail sales, stock, customers and suppliers in one POS, with reports, business documents and optional M-Pesa STK Push.
 
-Unzip this package directly into `C:\xampp\htdocs\generalpos-cleanup` (the `.ps1` file should be at that path, not one folder deeper).
+## General POS for everyday business
 
-**Preview:**
-```cmd
-powershell -ExecutionPolicy Bypass -File "C:\xampp\htdocs\generalpos-cleanup\cleanup-callcenter.ps1" -ProjectPath "C:\xampp\htdocs\generalpos"
-```
+General POS in Kenya brings everyday retail work into one familiar interface. Search products, scan assigned barcodes and record sales without switching between separate stock and customer tools. Keep prices, images and categories organised so your team can identify the right item at checkout.
 
-**Apply (permanent deletion):**
-```cmd
-powershell -ExecutionPolicy Bypass -File "C:\xampp\htdocs\generalpos-cleanup\cleanup-callcenter.ps1" -ProjectPath "C:\xampp\htdocs\generalpos" -Apply
-```
+## Manage your daily workflow
 
-**Verify:**
-```cmd
-php artisan optimize:clear
-php artisan route:list
-npm run build
-```
+- **Customer credit:** Follow customer credit and record repayments when a customer returns to settle a balance.
+- **Suppliers and purchasing:** Manage supplier records and purchase orders.
+- **Shifts and sales history:** Review cashier shifts and check sales history.
+- **Reports:** Follow stock and sales activity.
+- **Business documents:** Invoices, quotations and credit notes support business transactions.
+- **M-Pesa STK Push (optional):** Requires approved credentials and configuration.
 
-The script retains existing authentication code and database users, but replaces specific layout, routing and login-controller files to eliminate references to removed call-center functionality. Check `remove-paths.txt` and `replacements/` before applying. It will not clean unrelated files absent from its manifest.
+## Installation and payment setup
 
+- Choose a single standalone till, or discuss a Windows master with approved local-network terminals.
+- Confirm scanner, receipt printer and cash-drawer compatibility for your installation.
+- Local ZIP backups include images. Optional database-only online backups require the Suweka backup service.
+- Contact Suweka for a quotation covering licensing, devices, setup and training.
