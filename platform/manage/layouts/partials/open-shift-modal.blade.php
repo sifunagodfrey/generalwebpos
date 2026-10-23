@@ -1,3 +1,4 @@
+@include('manage.layouts.partials.add-customer-modal')
 {{-- --------------- --}}
 {{-- Open shift dialog, toggled by shiftModal on the page root --}}
 {{-- --------------- --}}

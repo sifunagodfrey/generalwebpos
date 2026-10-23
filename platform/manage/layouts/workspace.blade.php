@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" x-data="{navOpen:false,profileOpen:false,moreOpen:false,saleTab:'products',shiftModal:false}" @sw:sale-tab.window="saleTab=$event.detail" @sw:open-shift.window="shiftModal=true" @keydown.escape.window="moreOpen=false;profileOpen=false">
+<html lang="en" x-data="{navOpen:false,profileOpen:false,moreOpen:false,saleTab:'products',shiftModal:false,customerModal:false}" @sw:sale-tab.window="saleTab=$event.detail" @sw:open-shift.window="shiftModal=true" @sw:open-customer.window="customerModal=true" @keydown.escape.window="moreOpen=false;profileOpen=false">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}">
 <title>@yield('title','Suweka POS') — Suweka POS</title>
 <link rel="icon" href="{{ asset('images/suweka-icon.png') }}">
@@ -12,7 +12,7 @@
  <div class="sw-side-head"><a href="{{ route('manage.dashboard.index') }}" aria-label="Return to main menu"><i class="fa-solid fa-arrow-left"></i></a><strong>{{ $modules[$module]['label'] }}</strong><a class="sw-side-home" href="{{ route('manage.dashboard.index') }}" title="Main menu"><i class="fa-solid fa-house"></i></a></div>
  <nav class="sw-side-menu" aria-label="{{ $modules[$module]['label'] }} navigation">
  @foreach($modules[$module]['items'] as $nav)
- <a class="sw-nav-link {{ $page===$nav[0]?'active':'' }}" href="{{ route('manage.workspace.'.$module,['page'=>$nav[0]]) }}"><i class="fa-solid fa-{{ $nav[2] }}"></i>{{-- --------------- --}}
+ <a class="sw-nav-link {{ $page===$nav[0]?'active':'' }}" href="{{ route('manage.workspace.'.$module,['page'=>$nav[0]]) }}" @if($module==='customers' && ($nav[0]==='add' || strcasecmp($nav[1],'Add Customer')===0)) @click.prevent="customerModal=true;navOpen=false" @endif><i class="fa-solid fa-{{ $nav[2] }}"></i>{{-- --------------- --}}
 {{-- Held sales count beside the label --}}
 {{-- --------------- --}}
 <span>{{ $nav[1] }}@if($nav[0]==='held' && isset($heldSalesCount)) ({{ $heldSalesCount }})@endif</span></a>
@@ -36,7 +36,7 @@
  @if(!empty($module))
 <nav class="sw-mobile-submenu" x-show="saleTab!=='cart'" aria-label="{{ $modules[$module]['label'] }} sections">
  @foreach($modules[$module]['items'] as $nav)
- <a href="{{ route('manage.workspace.'.$module,['page'=>$nav[0]]) }}" class="{{ $page===$nav[0]?'active':'' }}"><i class="fa-solid fa-{{ $nav[2] }}"></i> {{ $nav[1] }}</a>
+ <a href="{{ route('manage.workspace.'.$module,['page'=>$nav[0]]) }}" class="{{ $page===$nav[0]?'active':'' }}" @if($module==='customers' && ($nav[0]==='add' || strcasecmp($nav[1],'Add Customer')===0)) @click.prevent="customerModal=true" @endif><i class="fa-solid fa-{{ $nav[2] }}"></i> {{ $nav[1] }}</a>
  @endforeach
  </nav>@endif
  <header class="sw-topbar">
@@ -62,7 +62,7 @@
    @foreach(['dashboard'=>'Dashboard','customers'=>'Customers','suppliers'=>'Suppliers','staff'=>'Staff','documents'=>'Documents','reports'=>'Reports','settings'=>'Settings'] as $key=>$title)
     <a style="padding:15px;background:#f5f0fc;border:1px solid #e4d8fa;border-radius:10px;color:#713FCE;font-weight:600" href="{{route('manage.workspace.'.$key,['page'=> config('suweka_ui.'.$key.'.items.0.0','index')])}}">{{$title}}</a>
    @endforeach
-   
+
    <a style="padding:15px;background:#f5f0fc;border:1px solid #e4d8fa;border-radius:10px;color:#713FCE" href="{{route('manage.dashboard.index')}}">Main menu</a>
    </div>
   </div>
@@ -70,6 +70,9 @@
 </div>
 @if(($module??'')==='sale' && !($activeShift ?? null))
 @include('manage.layouts.partials.open-shift-modal')
+@endif
+@if(($module??'')==='customers')
+@include('manage.layouts.partials.add-customer-modal')
 @endif
 <script src="{{ asset('js/suweka-workspace.js') }}" defer></script>
 </body></html>
