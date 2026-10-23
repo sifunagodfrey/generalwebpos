@@ -49,6 +49,7 @@
             submitUrl: config.submitUrl,
             quoteUrl: config.quoteUrl,
             barcodeUrl: config.barcodeUrl,
+            recallUrl: config.recallUrl,
             shiftOpen: !!config.shiftOpen,
             query: config.query || '',
             lines: [],
@@ -63,11 +64,32 @@
             discountDialog: { open: false, index: -1, name: '', price: 0, baseDiscount: 0, appliedDiscount: 0, type: 'amount', value: '0', error: '' },
             initCheckout() {
                 this.lines = readCart();
-                this.refreshQuote();
-                // ---------------
-                // Tell the layout which mobile screen is showing
-                // ---------------
+                const recallId = new URLSearchParams(window.location.search).get('recall');
+                if (recallId) {
+                    this.recallHeld(recallId);
+                } else {
+                    this.refreshQuote();
+                }
                 this.$watch('tab', (value) => window.dispatchEvent(new CustomEvent('sw:sale-tab', { detail: value })));
+            },
+            async recallHeld(id) {
+                try {
+                    const response = await fetch(String(this.recallUrl).replace(/0$/, encodeURIComponent(id)), { headers: { Accept: 'application/json' } });
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok) throw new Error(data.message || 'Unable to recall this held sale.');
+                    this.lines = (data.lines || []).map((l) => ({ ...l, quantity: Number(l.quantity), price: Number(l.price), stock: Number(l.stock) }));
+                    sessionStorage.setItem('sw_held_sale_id', String(data.sale.id));
+                    if (data.sale.customer_id) sessionStorage.setItem(CUSTOMER_KEY, String(data.sale.customer_id));
+                    else sessionStorage.removeItem(CUSTOMER_KEY);
+                    writeCart(this.lines);
+                    await this.refreshQuote();
+                } catch (error) {
+                    this.error = error.message;
+                } finally {
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('recall');
+                    window.history.replaceState({}, '', url);
+                }
             },
             money,
             quantityFor(productId, variantId = null) {
@@ -117,6 +139,7 @@
                         manual_discount_percent: 0,
                     })),
                     customer_id: sessionStorage.getItem(CUSTOMER_KEY) || null,
+                    held_sale_id: sessionStorage.getItem('sw_held_sale_id') || null,
                     payment_method: 'cash',
                     amount_tendered: this.total(),
                 };
@@ -269,6 +292,7 @@
             clear() {
                 this.lines = [];
                 sessionStorage.removeItem(CUSTOMER_KEY);
+                sessionStorage.removeItem('sw_held_sale_id');
                 writeCart([]);
                 this.error = '';
             },

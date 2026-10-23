@@ -197,7 +197,36 @@ class SaleWorkspaceController extends Controller
         $staffId = app(SaleCheckoutService::class)->staffId((int) $request->user()->id);
         $sale = DB::table('su_sales')->where('id', $saleId)->where('status', 'held')->where('staff_id', $staffId)->first();
         abort_unless($sale, 404);
-        return response()->json(['sale' => $sale, 'lines' => DB::table('su_sale_items')->where('sale_id', $saleId)->get()]);
+
+        $rows = DB::table('su_sale_items as i')
+            ->join('su_products as p', 'p.id', '=', 'i.product_id')
+            ->leftJoin('su_product_variants as v', 'v.id', '=', 'i.variant_id')
+            ->where('i.sale_id', $saleId)
+            ->orderBy('i.id')
+            ->get(['i.product_id', 'i.variant_id', 'i.quantity', 'i.unit_price', 'p.name as product_name', 'p.tax_type', 'v.name as variant_name']);
+
+        $lines = $rows->map(function ($r) {
+            $stock = (float) DB::table('su_stock_batches')
+                ->where('product_id', $r->product_id)
+                ->when($r->variant_id !== null, fn ($q) => $q->where('variant_id', $r->variant_id), fn ($q) => $q->whereNull('variant_id'))
+                ->where(fn ($q) => $q->whereNull('expiry_date')->orWhereDate('expiry_date', '>=', today()))
+                ->sum('quantity');
+            return [
+                'product_id'      => (int) $r->product_id,
+                'variant_id'      => $r->variant_id !== null ? (int) $r->variant_id : null,
+                'name'            => $r->product_name . ($r->variant_name ? ' - ' . $r->variant_name : ''),
+                'price'           => (float) $r->unit_price,
+                'stock'           => $stock,
+                'tax_type'        => $r->tax_type,
+                'quantity'        => (float) $r->quantity,
+                'manual_discount' => 0,
+            ];
+        })->values();
+
+        return response()->json([
+            'sale'  => ['id' => (int) $sale->id, 'customer_id' => $sale->customer_id, 'hold_label' => $sale->hold_label],
+            'lines' => $lines,
+        ]);
     }
 
     public function discard(Request $request, int $saleId, SaleCheckoutService $service)

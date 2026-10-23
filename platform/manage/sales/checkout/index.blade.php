@@ -12,6 +12,7 @@
     submitUrl: {{ Illuminate\Support\Js::from(route('manage.sales.checkout')) }},
     quoteUrl: {{ Illuminate\Support\Js::from(route('manage.sales.quote')) }},
     barcodeUrl: {{ Illuminate\Support\Js::from(route('manage.sales.barcode')) }},
+    recallUrl: {{ Illuminate\Support\Js::from(route('manage.sales.recall', 0)) }},
     shiftOpen: {{ Illuminate\Support\Js::from((bool) $shift) }},
     discountAllowed: {{ Illuminate\Support\Js::from(auth()->user()->hasAnyPermission(['pos.sales.discount','pos.sales.manage','pos.discounts.manage','pos.discounts.create','pos.sales.create'])) }},
     query: {{ Illuminate\Support\Js::from($search) }}
