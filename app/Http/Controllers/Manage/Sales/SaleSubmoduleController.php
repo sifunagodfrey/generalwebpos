@@ -213,4 +213,80 @@ class SaleSubmoduleController extends Controller
         DB::table('su_discounts_promotions')->where('id', $discountId)->delete();
         return redirect()->route('manage.sales.discounts')->with('status', 'Discount removed.');
     }
+
+    public function storeReturn(Request $request, int $saleId, SaleCheckoutService $service)
+    {
+        $this->permission($request, 'pos.sales.create');
+        
+        $data = $request->validate([
+            'sale_item_id' => 'required|integer',
+            'quantity' => 'required|numeric|min:0.01',
+            'reason' => 'required|string|max:255', // Changed from nullable to required
+            'restock' => 'required|boolean',
+        ]);
+
+        $staffId = $service->staffId((int) $request->user()->id);
+        if (!$staffId) {
+            return response()->json(['message' => 'An active staff account is required.'], 422);
+        }
+
+        try {
+            DB::transaction(function () use ($saleId, $data, $staffId) {
+                $saleItem = DB::table('su_sale_items')->where('id', $data['sale_item_id'])->where('sale_id', $saleId)->first();
+                if (!$saleItem) {
+                    throw new \Exception('Sale item not found.');
+                }
+
+                // Prevent returning more than was sold
+                $alreadyReturned = DB::table('su_returns_refunds')->where('sale_item_id', $saleItem->id)->sum('quantity');
+                $available = $saleItem->quantity - $alreadyReturned;
+                
+                if ($data['quantity'] > $available) {
+                    throw new \Exception('Requested quantity exceeds the available return amount.');
+                }
+
+                // Calculate refund based on original item price
+                $unitPrice = $saleItem->quantity > 0 ? ($saleItem->line_total / $saleItem->quantity) : 0;
+                $amountRefunded = round($unitPrice * $data['quantity'], 2);
+
+                // 1. Record the return
+                DB::table('su_returns_refunds')->insert([
+                    'sale_id' => $saleId,
+                    'sale_item_id' => $saleItem->id,
+                    'quantity' => $data['quantity'],
+                    'reason' => $data['reason'],
+                    'amount_refunded' => $amountRefunded,
+                    'staff_id' => $staffId,
+                    'created_at' => now(),
+                ]);
+
+                // 2. Restock if requested
+                if ($data['restock']) {
+                    // Try to find an existing non-expiring batch for this product/variant
+                    $batch = DB::table('su_stock_batches')
+                        ->where('product_id', $saleItem->product_id)
+                        ->when($saleItem->variant_id, fn($q) => $q->where('variant_id', $saleItem->variant_id), fn($q) => $q->whereNull('variant_id'))
+                        ->whereNull('expiry_date')
+                        ->first();
+
+                    if ($batch) {
+                        DB::table('su_stock_batches')->where('id', $batch->id)->increment('quantity', $data['quantity']);
+                    } else {
+                        // Create a new batch if none exists
+                        DB::table('su_stock_batches')->insert([
+                            'product_id' => $saleItem->product_id,
+                            'variant_id' => $saleItem->variant_id,
+                            'quantity' => $data['quantity'],
+                            'received_at' => now(),
+                        ]);
+                    }
+                }
+            });
+            
+            return response()->json(['ok' => true, 'message' => 'Credit note issued successfully.']);
+            
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+    }
 }

@@ -4,7 +4,12 @@
 @section('content')
 <link rel="stylesheet" href="{{ asset('css/suweka-sales-submodules.css') }}">
 
-<div x-data="returnsPage({ detailUrl: '{{ route('manage.sales.returns.show', 'REPLACE_ID') }}' })" class="sws-returns" x-cloak>
+<div x-data="returnsPage({ 
+        detailUrl: '{{ route('manage.sales.returns.show', 'REPLACE_ID') }}',
+        storeUrl: '{{ route('manage.sales.returns.store', 'REPLACE_ID') }}'
+    })" 
+    class="sws-returns" x-cloak>
+    
     <!-- Left Panel: List of Sales -->
     <div class="sws-return-left" :class="{'sw-hidden-mobile': selectedSale}">
         <form method="GET" action="{{ route('manage.sales.returns') }}" class="sws-search-field">
@@ -46,28 +51,49 @@
             <div class="sws-return-details">
                 <div class="sws-detail-card">
                     <h3>Invoice #<span x-text="selectedSale.id"></span></h3>
-                    <p class="sws-muted" style="margin-bottom: 20px;">Total <span x-text="selectedSale.total"></span></p>
+                    <p class="sws-muted" style="margin-bottom: 24px;">Total <span x-text="selectedSale.total"></span></p>
                     
                     <div class="sws-items">
                         <template x-for="line in saleLines" :key="line.id">
-                            <div class="sws-item">
+                            <div class="sws-item" style="border-bottom: 1px solid #eee5f8; padding: 20px 0;">
                                 <div>
-                                    <strong x-text="line.product_name"></strong>
-                                    <small>Sold <span x-text="line.quantity"></span> at <span x-text="line.unit_price"></span></small>
+                                    <strong x-text="line.product_name" style="font-size: 16px; color: #2d384c;"></strong>
+                                    <small style="margin-top: 4px; display: block; color: #697c9a;">
+                                        Sold <span x-text="Number(line.quantity)"></span> at <span x-text="line.unit_price"></span>
+                                        <template x-if="alreadyReturned[line.id] > 0">
+                                            <span> | <span x-text="Number(alreadyReturned[line.id])"></span> already returned</span>
+                                        </template>
+                                    </small>
                                 </div>
-                                <button type="button" class="sws-btn-outline" 
-                                        @click="openQtyModal(line)"
-                                        :disabled="(line.quantity - (alreadyReturned[line.id] || 0)) <= 0">
-                                    Credit note
-                                </button>
+                                <div>
+                                    <template x-if="(line.quantity - (alreadyReturned[line.id] || 0)) <= 0">
+                                        <span class="sws-muted" style="font-size: 14px;">Fully returned</span>
+                                    </template>
+                                    <template x-if="(line.quantity - (alreadyReturned[line.id] || 0)) > 0">
+                                        <button type="button" class="sws-btn-outline" @click="openQtyModal(line)">Credit note</button>
+                                    </template>
+                                </div>
                             </div>
                         </template>
                     </div>
                 </div>
 
-                <div class="sws-detail-card">
-                    <h3>Returns / credit history</h3>
-                    <p class="sws-muted">No returns recorded yet.</p>
+                <div class="sws-detail-card" style="margin-top: 24px;">
+                    <h3 style="margin-bottom: 24px; font-size: 16px; font-weight: 700; color: #2d384c;">Returns / credit history</h3>
+                    
+                    <template x-if="history.length === 0">
+                        <p class="sws-muted" style="font-size: 14px; color: #697c9a;">No returns recorded yet.</p>
+                    </template>
+                    
+                    <template x-for="record in history" :key="record.id">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0;">
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <i class="fa-solid fa-box-open" style="color: #ea580c; font-size: 22px;"></i>
+                                <span style="font-size: 15px; color: #2d384c;" x-text="Number(record.quantity) + ' unit(s) - ' + (record.reason || 'cause')"></span>
+                            </div>
+                            <span style="font-size: 14px; font-weight: 500; color: #2d384c;" x-text="'-' + Number(record.amount_refunded)"></span>
+                        </div>
+                    </template>
                 </div>
             </div>
         </template>
@@ -77,7 +103,7 @@
     <div class="sws-modal-overlay" x-show="showQtyModal" @click.self="showQtyModal=false" style="display: none;">
         <div class="sws-modal" @click.stop>
             <h3>Credit note: <span x-text="currentItem?.product_name"></span></h3>
-            <p>Sold <span x-text="currentItem?.quantity"></span>, <span x-text="(currentItem?.quantity - (alreadyReturned[currentItem?.id] || 0))"></span> still available to return.</p>
+            <p>Sold <span x-text="Number(currentItem?.quantity)"></span>, <span x-text="Number((currentItem?.quantity - (alreadyReturned[currentItem?.id] || 0)))"></span> still available to return.</p>
             
             <label>Quantity returned</label>
             <input type="number" x-model.number="returnQty" min="1" :max="currentItem?.quantity - (alreadyReturned[currentItem?.id] || 0)">
@@ -86,8 +112,9 @@
             <input type="text" :value="(returnQty * currentItem?.unit_price).toFixed(2)" readonly>
             <p class="sws-help-text">Includes original discounts and tax.</p>
 
-            <label>Reason</label>
-            <input type="text" x-model="returnReason" placeholder="Optional reason">
+            <label>Reason <span style="color: #e34b4b;">*</span></label>
+            <input type="text" x-model="returnReason" placeholder="Enter reason">
+            <p class="sws-help-text" x-show="reasonError" style="color: #e34b4b; margin-top: -8px; margin-bottom: 16px;" x-text="reasonError"></p>
 
             <div class="sws-toggle-row">
                 <div>
@@ -120,8 +147,8 @@
             <p class="sws-help-text" style="margin-top: 12px;">Confirm only after arranging the listed refunds. This records refunds; it does not send money.</p>
 
             <div class="sws-modal-actions">
-                <button type="button" class="sws-btn-text" @click="showConfirmModal=false">Cancel</button>
-                <button type="button" class="sws-btn-primary" @click="confirmReturn()">Confirm and issue</button>
+                <button type="button" class="sws-btn-text" @click="showConfirmModal=false" :disabled="busy">Cancel</button>
+                <button type="button" class="sws-btn-primary" @click="confirmReturn()" :disabled="busy" x-text="busy ? 'Issuing...' : 'Confirm and issue'"></button>
             </div>
         </div>
     </div>
@@ -131,15 +158,19 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('returnsPage', (config) => ({
         detailUrl: config.detailUrl,
+        storeUrl: config.storeUrl,
         selectedSale: null,
         saleLines: [],
         alreadyReturned: {},
+        history: [],
         loadingSale: false,
+        busy: false,
         
         showQtyModal: false,
         currentItem: null,
         returnQty: 1,
         returnReason: '',
+        reasonError: '',
         restock: true,
         
         showConfirmModal: false,
@@ -158,6 +189,7 @@ document.addEventListener('alpine:init', () => {
                     this.selectedSale = data.sale;
                     this.saleLines = data.lines;
                     this.alreadyReturned = data.alreadyReturned;
+                    this.history = data.history || [];
                 } else {
                     alert(data.message || 'Error loading sale');
                     this.selectedSale = null;
@@ -175,11 +207,17 @@ document.addEventListener('alpine:init', () => {
             const remaining = line.quantity - (this.alreadyReturned[line.id] || 0);
             this.returnQty = remaining;
             this.returnReason = '';
+            this.reasonError = '';
             this.restock = true;
             this.showQtyModal = true;
         },
 
         reviewReturn() {
+            this.reasonError = '';
+            if(!this.returnReason.trim()) {
+                this.reasonError = 'A reason is required to process a return.';
+                return;
+            }
             const remaining = this.currentItem.quantity - (this.alreadyReturned[this.currentItem.id] || 0);
             if(this.returnQty < 1 || this.returnQty > remaining) {
                 alert('Invalid quantity');
@@ -197,10 +235,39 @@ document.addEventListener('alpine:init', () => {
             this.showConfirmModal = true;
         },
 
-        confirmReturn() {
-            alert('Credit note issued successfully (UI only)');
-            this.showConfirmModal = false;
-            this.loadSale(this.selectedSale.id);
+        async confirmReturn() {
+            if (this.busy) return;
+            this.busy = true;
+            
+            try {
+                const url = this.storeUrl.replace('REPLACE_ID', this.selectedSale.id);
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({
+                        sale_item_id: this.confirmData.item.id,
+                        quantity: this.confirmData.qty,
+                        reason: this.confirmData.reason,
+                        restock: this.confirmData.restock ? 1 : 0
+                    })
+                });
+                
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Error issuing credit note');
+                
+                this.showConfirmModal = false;
+                // Refresh the details to show the new return in the history and update available quantities
+                this.loadSale(this.selectedSale.id);
+                
+            } catch (e) {
+                alert(e.message);
+            } finally {
+                this.busy = false;
+            }
         }
     }));
 });
