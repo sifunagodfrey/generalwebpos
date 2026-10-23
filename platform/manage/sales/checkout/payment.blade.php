@@ -28,8 +28,26 @@
       </section>
       <div class="sw-payment-form">
        <label class="sw-payment-label">Customer <span x-show="creditDue()<=0">(optional)</span><span x-show="creditDue()>0">(required for credit)</span></label>
-       <div class="sw-payment-customer-field"><i class="fa-solid fa-users"></i><input type="text" list="sw-payment-customers" x-model="customerSearch" placeholder="Customer name or phone" @change="pickCustomerFromSearch()"></div>
-       <datalist id="sw-payment-customers"><template x-for="customer in customers" :key="customer.id"><option :value="customerLabel(customer)"></option></template></datalist>
+        {{-- --------------- --}}
+        {{-- Customer field with dropdown list --}}
+        {{-- --------------- --}}
+        <div class="sw-payment-customer-wrap" x-data="{ open: false, list: [] }"
+             x-effect="list = customers.filter(c => { const t = customerSearch.trim().toLowerCase(); const s = selectedCustomer(); return !t || (s && customerLabel(s).toLowerCase() === t) || customerLabel(c).toLowerCase().includes(t); })"
+             @click.outside="open=false" @keydown.escape="open=false">
+         <div class="sw-payment-customer-field">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3 19c0-3.2 2.7-5.5 6-5.5 1 0 1.9.2 2.7.6"/><circle cx="16.5" cy="16.5" r="2.5"/><path d="M18.4 18.4 21 21"/></svg>
+          <input type="text" x-model="customerSearch" placeholder="Customer name or phone" autocomplete="off" @focus="open=true; $nextTick(() => $refs.menu.scrollIntoView({block:'nearest'}))" @input="open=true" @change="pickCustomerFromSearch()">
+         </div>
+         <ul class="sw-customer-menu" x-ref="menu" x-cloak x-show="open" role="listbox">
+          <template x-for="customer in list" :key="customer.id">
+           <li class="sw-customer-option" role="option" @mousedown.prevent @click="customerSearch = customerLabel(customer); pickCustomerFromSearch(); open = false">
+            <strong x-text="[customer.first_name, customer.last_name].filter(Boolean).join(' ')"></strong>
+            <small x-text="customer.phone"></small>
+           </li>
+          </template>
+          <li class="sw-customer-empty" x-show="!list.length">No customers found</li>
+         </ul>
+        </div>
        <label class="sw-payment-label">Payment method</label>
        <div class="sw-payment-methods">
         <label><input type="radio" value="cash" name="payment_method" x-model="paymentMethod"> Cash</label>

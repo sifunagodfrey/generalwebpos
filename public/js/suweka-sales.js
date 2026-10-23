@@ -347,6 +347,7 @@
             customers: config.customers || [], shiftOpen: !!config.shiftOpen,
             lines: [], serverQuote: null, paymentMethod: 'cash', tendered: '', paymentReference: '',
             customerId: sessionStorage.getItem(CUSTOMER_KEY) || '', customerSearch: '',
+            customerOpen: false,
             overLimitApproved: false, error: '', busy: false,
             async initPayment() {
                 this.lines = readCart();

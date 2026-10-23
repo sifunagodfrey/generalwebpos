@@ -141,3 +141,16 @@
 .sw-sale-primary,.sw-sale-actions button{display:flex;align-items:center;justify-content:center;gap:10px}
 .sw-sale-primary i{font-size:12px}
 .sw-sale-actions button:disabled{color:#a79fb8;border-color:#d9d3e4;cursor:not-allowed}
+
+/* --------------- */
+/* Payment: customer dropdown */
+/* --------------- */
+.sw-payment-customer-wrap{position:relative}
+.sw-payment-customer-field svg{flex:none;margin-left:8px;color:#39435a}
+.sw-customer-menu{position:absolute;left:0;top:100%;z-index:30;width:68%;max-height:min(300px,45dvh);margin:2px 0 0;padding:6px 0;overflow-y:auto;list-style:none;background:#fff;border-radius:4px;box-shadow:0 3px 10px #00000026}
+.sw-customer-option{display:grid;gap:3px;padding:10px 16px;cursor:pointer;color:#1d1b20}
+.sw-customer-option strong{font-size:15px;font-weight:400}
+.sw-customer-option small{font-size:13px;color:#49454f}
+.sw-customer-option:hover{background:#f4effb}
+.sw-customer-empty{padding:12px 16px;font-size:13px;color:#69758e}
+@media(max-width:850px){.sw-customer-menu{width:85%}}
