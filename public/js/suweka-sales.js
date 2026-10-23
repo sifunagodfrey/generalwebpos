@@ -14,6 +14,10 @@
 
     function writeCart(lines) {
         sessionStorage.setItem(STORAGE_KEY, JSON.stringify(lines || []));
+        // ---------------
+        // Keep the mobile bottom-nav cart badge in sync
+        // ---------------
+        window.dispatchEvent(new Event('sw:cart-changed'));
     }
 
     function money(value) {
@@ -50,13 +54,30 @@
             lines: [],
             error: '',
             busy: false,
+            // ---------------
+            // Cart screen state (mobile) and dialogs
+            // ---------------
+            discountAllowed: !!config.discountAllowed,
+            tab: 'products',
+            quantityDialog: { open: false, index: -1, name: '', value: '', error: '' },
+            discountDialog: { open: false, index: -1, name: '', price: 0, baseDiscount: 0, appliedDiscount: 0, type: 'amount', value: '0', error: '' },
             initCheckout() {
                 this.lines = readCart();
                 this.refreshQuote();
+                // ---------------
+                // Tell the layout which mobile screen is showing
+                // ---------------
+                this.$watch('tab', (value) => window.dispatchEvent(new CustomEvent('sw:sale-tab', { detail: value })));
             },
             money,
             quantityFor(productId, variantId = null) {
                 return this.lines.filter((line) => Number(line.product_id) === Number(productId) && ((line.variant_id ?? null) === (variantId ?? null))).reduce((sum, line) => sum + Number(line.quantity || 0), 0);
+            },
+            // ---------------
+            // Total units in the cart, same count the bottom-nav badge uses
+            // ---------------
+            cartCount() {
+                return this.lines.reduce((sum, line) => sum + Math.max(0, Number(line.quantity) || 0), 0);
             },
             subtotal() {
                 return this.lines.reduce((sum, line) => sum + (Number(line.quantity) * this.unitNet(line)), 0);
@@ -148,16 +169,102 @@
                 this.lines.splice(index, 1);
                 this.persist();
             },
+            appliedDiscount(line) {
+                return Math.min(Number(line.price || 0), Number(line.manual_discount || 0));
+            },
+            editQuantity(index) {
+                const line = this.lines[index];
+                if (!line) return;
+                this.quantityDialog = { open: true, index, name: line.name, value: String(line.quantity), error: '' };
+                this.$nextTick(() => {
+                    this.$refs.quantityInput?.focus();
+                    this.$refs.quantityInput?.select();
+                });
+            },
+            closeQuantity() {
+                this.quantityDialog.open = false;
+            },
+            applyQuantity() {
+                const index = this.quantityDialog.index;
+                const line = this.lines[index];
+                if (!line) return this.closeQuantity();
+                const next = Number(this.quantityDialog.value);
+                if (!Number.isFinite(next) || next < 0) {
+                    this.quantityDialog.error = 'Enter a valid quantity.';
+                    return;
+                }
+                if (next === 0) {
+                    this.remove(index);
+                    this.closeQuantity();
+                    return;
+                }
+                if (next > Number(line.stock || 0)) {
+                    this.quantityDialog.error = 'Only ' + Number(line.stock || 0) + ' available.';
+                    return;
+                }
+                line.quantity = next;
+                this.persist();
+                this.closeQuantity();
+            },
             editDiscount(index) {
                 const line = this.lines[index];
                 if (!line) return;
-                const current = String(line.manual_discount || 0);
-                const value = window.prompt('Discount per unit', current);
-                if (value === null) return;
-                const parsed = Math.max(0, Math.min(Number(line.price || 0), Number(value || 0)));
-                if (!Number.isFinite(parsed)) return;
-                line.manual_discount = parsed;
+                this.discountDialog = {
+                    open: true,
+                    index,
+                    name: line.name,
+                    price: Number(line.price || 0),
+                    baseDiscount: Number(line.base_discount || 0),
+                    appliedDiscount: this.appliedDiscount(line),
+                    type: 'amount',
+                    value: String(this.appliedDiscount(line)),
+                    error: '',
+                };
+            },
+            closeDiscount() {
+                this.discountDialog.open = false;
+            },
+            discountAmount() {
+                const d = this.discountDialog;
+                const entered = Number(d.value || 0);
+                const amount = d.type === 'percent' ? (d.price * entered) / 100 : entered;
+                return Number.isFinite(amount) ? Math.max(0, Math.min(d.price, amount)) : 0;
+            },
+            discountPreviewLine() {
+                const line = this.lines[this.discountDialog.index];
+                return line ? Math.max(0, this.discountDialog.price - this.discountAmount()) * Number(line.quantity || 0) : 0;
+            },
+            discountPreviewCart() {
+                const line = this.lines[this.discountDialog.index];
+                return line ? this.subtotal() - this.lineTotal(line) + this.discountPreviewLine() : this.subtotal();
+            },
+            applyDiscount() {
+                const d = this.discountDialog;
+                const line = this.lines[d.index];
+                if (!this.discountAllowed || !line) return;
+                const entered = Number(d.value || 0);
+                if (!Number.isFinite(entered) || entered < 0) {
+                    d.error = 'Enter a valid discount.';
+                    return;
+                }
+                if (d.type === 'percent' && entered > 100) {
+                    d.error = 'Percentage cannot exceed 100.';
+                    return;
+                }
+                if (d.type === 'amount' && entered > d.price) {
+                    d.error = 'Discount cannot exceed the unit price.';
+                    return;
+                }
+                line.manual_discount = Math.round(this.discountAmount() * 100) / 100;
                 this.persist();
+                this.closeDiscount();
+            },
+            resetDiscount() {
+                const line = this.lines[this.discountDialog.index];
+                if (!this.discountAllowed || !line) return;
+                line.manual_discount = 0;
+                this.persist();
+                this.closeDiscount();
             },
             clear() {
                 this.lines = [];

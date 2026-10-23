@@ -45,3 +45,4 @@ if ($onAdminDomain) {
 } else {
     Route::as('manage.auth.')->group($adminAuthRoutes);
 }
+

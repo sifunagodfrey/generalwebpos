@@ -82,3 +82,62 @@
 .sw-payment-input{display:block;width:100%;margin:8px 0 18px;border:1px solid #e4d9f8;border-radius:9px;padding:12px;background:white;color:#303b51;font:inherit}
 .sw-payment-credit-info{display:grid;gap:8px;font-size:12px;color:#745299;margin:8px 0}
 @media(max-width:900px){.sw-sales-payment{height:calc(100dvh - 170px)!important}.sw-sales-payment .sw-payment-page{padding-top:6px}}
+/* --------------- */
+/* Cart card: right column and quantity button */
+/* --------------- */
+.sw-cart-card-head{grid-template-columns:44px minmax(0,1fr) auto}
+.sw-cart-side{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.sw-cart-side .sw-discount-trigger{font-size:18px;line-height:1;color:#43464f}
+.sw-qty-pill .sw-qty-edit{min-width:14px;padding:0;font-size:14px;color:#28344a}
+.sw-sale-camera,.sw-sale-cart-btn{display:none}
+
+/* --------------- */
+/* Quantity and discount dialogs */
+/* --------------- */
+.sw-quantity-overlay,.sw-discount-overlay{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:16px;background:#16102380}
+.sw-quantity-modal,.sw-discount-modal{width:min(380px,100%);max-height:calc(100dvh - 32px);overflow:auto;background:#fff;border-radius:14px;padding:20px;box-shadow:0 12px 40px #31215833;color:#2d384c}
+.sw-quantity-modal h3,.sw-discount-modal h3{margin:0 0 12px;font-size:16px}
+.sw-quantity-modal label,.sw-discount-modal label{display:block;margin:12px 0 6px;font-size:13px;font-weight:700}
+.sw-quantity-modal input,.sw-discount-modal input,.sw-discount-modal select{width:100%;border:1px solid #e4d9f8;border-radius:9px;padding:12px;background:#fff;color:#303b51;font:inherit}
+.sw-discount-modal p{margin:6px 0;font-size:13px;color:#69758e}
+.sw-discount-modal .sw-discount-item-name{font-weight:700;color:#2d384c}
+.sw-discount-modal .sw-discount-note{font-size:12px}
+.sw-quantity-modal .sw-quantity-invalid,.sw-discount-modal .sw-discount-invalid{font-size:12px;color:#e34b4b}
+.sw-discount-preview{display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid #ece2fb;font-size:14px}
+.sw-quantity-actions,.sw-discount-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;margin-top:16px}
+.sw-quantity-actions button,.sw-discount-actions button{border:1px solid #888191;border-radius:12px;background:#fff;color:#713fce;padding:11px 16px;font-weight:600}
+.sw-quantity-actions .sw-quantity-set,.sw-discount-actions .sw-discount-apply{border-color:#713fce;background:#713fce;color:#fff}
+.sw-discount-actions button:disabled{opacity:.5;cursor:not-allowed}
+
+/* --------------- */
+/* Mobile: Sale screen and separate Cart screen */
+/* --------------- */
+@media(max-width:850px){
+  .sw-sale-cols{display:block;min-height:0}
+  .sw-sale-cart{display:none;min-height:calc(100dvh - 163px)}
+  .sw-sale-cols.sw-view-cart .sw-sale-catalog{display:none}
+  .sw-sale-cols.sw-view-cart .sw-sale-cart{display:flex}
+  .sw-sale-search{gap:12px;padding:8px 14px 8px 8px}
+  .sw-sale-search .sw-search{height:44px}
+  .sw-sale-camera{display:grid;place-items:center;flex:none;padding:0;border:0;background:transparent;color:#4b5266}
+  .sw-sale-cart-btn{display:grid;place-items:center;flex:none;padding:0 4px;border:0;background:transparent;color:#2d384c;font-size:22px}
+}
+
+/* --------------- */
+/* Desktop: only the product grid scrolls, the cart stays in view */
+/* --------------- */
+@media(min-width:901px){
+  .sw-sale-cols{height:calc(100vh - 116px);height:calc(100dvh - 116px);min-height:0}
+  .sw-sale-catalog{min-height:0}
+  .sw-sale-search{flex:none}
+.sw-sale-grid{grid-template-columns:repeat(3,minmax(0,1fr));flex:1 1 auto;min-height:0;overflow-y:auto;padding-right:4px;scrollbar-width:thin;grid-auto-rows:max-content}  .sw-sale-cart{min-height:0;overflow:hidden}
+  .sw-sale-lines{flex:0 1 auto;max-height:none}
+  .sw-sale-bottom{flex:none;margin-top:0}
+}
+
+/* --------------- */
+/* Cart buttons: icon beside label, greyed when the cart is empty */
+/* --------------- */
+.sw-sale-primary,.sw-sale-actions button{display:flex;align-items:center;justify-content:center;gap:10px}
+.sw-sale-primary i{font-size:12px}
+.sw-sale-actions button:disabled{color:#a79fb8;border-color:#d9d3e4;cursor:not-allowed}

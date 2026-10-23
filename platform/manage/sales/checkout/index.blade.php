@@ -22,7 +22,15 @@
                 <div class="sw-search">
                     <i class="fa-solid fa-qrcode"></i>
                     <input name="q" x-model="query" x-ref="scanner" autocomplete="off" placeholder="Search or scan products" aria-label="Search or scan products" @input.debounce.300ms="liveSearch()">
+                    {{-- --------------- --}}
+                    {{-- Camera button, mobile only --}}
+                    {{-- --------------- --}}
+                    <button type="button" class="sw-sale-camera" aria-label="Scan with camera"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
                 </div>
+                {{-- --------------- --}}
+                {{-- Open cart screen, mobile only --}}
+                {{-- --------------- --}}
+                <button type="button" class="sw-sale-cart-btn" @click="tab='cart'; window.scrollTo({top:0})" aria-label="Open cart"><span class="sw-nav-symbol"><i class="fa-solid fa-cart-shopping"></i><b class="sw-bottom-count" x-text="cartCount()" hidden>0</b></span></button>
             </form>
 
             <div id="sw-catalog-results" class="sw-catalog-results">
@@ -78,7 +86,6 @@
         </section>
 
         <aside class="sw-sale-cart" id="sw-active-cart">
-            <button type="button" class="sw-cart-mobile-back" @click="tab='products'">← Back to products</button>
             <h3>Current sale</h3>
             <template x-if="!lines.length"><p class="sw-cart-empty">Cart is empty. Tap a product to add it.</p></template>
             <div class="sw-sale-lines">
@@ -89,18 +96,20 @@
                             <div class="sw-cart-meta">
                                 <div class="sw-cart-row-title">
                                     <strong x-text="line.name"></strong>
-                                    <span class="sw-cart-price" x-text="money(lineTotal(line))"></span>
                                 </div>
                                 <small x-text="money(line.price) + ' per unit'"></small>
                                 <button type="button" class="sw-discount-link" @click="editDiscount(index)">Discount: <span x-text="money(appliedDiscount(line))"></span> per unit</button>
                             </div>
-                            <button type="button" class="sw-discount-trigger" @click="editDiscount(index)" aria-label="Edit discount">%</button>
+                            <div class="sw-cart-side">
+                                <span class="sw-cart-price" x-text="money(lineTotal(line))"></span>
+                                <button type="button" class="sw-discount-trigger" @click="editDiscount(index)" aria-label="Edit discount">%</button>
+                            </div>
                         </div>
                         <div class="sw-cart-card-foot">
                             <div class="sw-qty-pill">
-                                <button type="button" @click="change(index,-1)">−</button>
+                                <button type="button" @click="change(index,-1)" aria-label="Decrease quantity">&minus;</button>
                                 <button type="button" class="sw-qty-edit" @click="editQuantity(index)" :aria-label="'Set quantity for '+line.name" title="Enter quantity" x-text="line.quantity"></button>
-                                <button type="button" @click="change(index,1)">+</button>
+                                <button type="button" @click="change(index,1)" aria-label="Increase quantity">+</button>
                             </div>
                             <button type="button" class="sw-remove-btn" @click="remove(index)" aria-label="Remove item"><i class="fa-regular fa-trash-can"></i></button>
                         </div>
@@ -111,10 +120,10 @@
                 <div class="sw-subtotal"><span>Subtotal</span><span x-text="money(subtotal())"></span></div>
                 <div class="sw-total"><strong>Total</strong><strong x-text="money(total())"></strong></div>
                 <template x-if="error"><div class="sw-sale-error" role="alert" x-text="error"></div></template>
-                <button type="button" class="sw-sale-primary" :disabled="!lines.length" @click="goPayment()">Charge <span x-text="money(total())"></span></button>
+                <button type="button" class="sw-sale-primary" :disabled="!lines.length" @click="goPayment()"><i class="fa-solid fa-chevron-right text-white"></i><span>Charge <span x-text="money(total())"></span></span></button>
                 <div class="sw-sale-actions">
-                    <button type="button" @click="hold()" :disabled="!lines.length || busy">Hold sale</button>
-                    <button type="button" class="danger" @click="clear()" :disabled="busy">Clear</button>
+                    <button type="button" @click="hold()" :disabled="!lines.length || busy"><i class="fa-solid fa-pause text-primary"></i><span>Hold sale</span></button>
+                    <button type="button" class="danger" @click="clear()" :disabled="!lines.length || busy"><i class="fa-regular fa-trash-can text-[red]"></i><span>Clear</span></button>
                 </div>
             </div>
         </aside>

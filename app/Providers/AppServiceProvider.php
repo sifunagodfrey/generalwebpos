@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\DB;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -88,6 +89,23 @@ class AppServiceProvider extends ServiceProvider
                 'adminAlerts' => Notification::forUser($user->id)->unread()->latest()->limit(8)->get(),
                 'adminAlertCount' => Notification::forUser($user->id)->unread()->count(),
             ]);
+        });
+
+        // ---------------
+        // Held sales count for the sale module sidebar
+        // ---------------
+        View::composer('manage.layouts.workspace', function ($view) {
+            $user = auth()->user();
+
+            if (!$user || ($view->getData()['module'] ?? null) !== 'sale') {
+                return;
+            }
+
+            $staffId = DB::table('su_staff')->where('user_id', $user->id)->where('is_active', 1)->value('id');
+
+            $view->with('heldSalesCount', $staffId
+                ? DB::table('su_sales')->where('status', 'held')->where('staff_id', $staffId)->count()
+                : 0);
         });
     }
 

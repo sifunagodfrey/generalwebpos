@@ -23,3 +23,25 @@
 /* Unified account menu / mobile More navigation */
 .sw-userbar{z-index:110}.sw-userbar>button{margin-left:12px!important;min-width:26px;height:32px}.sw-account-pop{min-width:142px;padding:6px!important;right:0;top:42px;border:1px solid #e5dbf5;box-shadow:0 8px 28px #31215826}.sw-account-pop button{display:block;width:100%;text-align:left!important;padding:12px!important;color:#35415a!important;margin:0!important;border-radius:6px}.sw-account-pop button:hover{background:#f4effb!important}
 .sw-bottom-count[hidden]{display:none!important}.sw-mobile-bottom-nav button{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:#73809a;font-size:11px;border:0;background:#fff}.sw-mobile-bottom-nav button i{font-size:19px}
+/* --------------- */
+/* Sale shell: shift pill (desktop) */
+/* --------------- */
+.sw-shift-pill{margin-left:auto;margin-right:-8px;display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 14px;border:1px solid #888191;border-radius:999px;background:#fff;color:#713fce;font-size:13px;font-weight:600}
+.sw-shift-dot{width:8px;height:8px;border-radius:50%;background:#00a36c}
+.sw-shift-pill.is-closed .sw-shift-dot{background:#d9434b}
+
+/* --------------- */
+/* Sale shell: mobile app bar (centred title, shift icon colours) */
+/* --------------- */
+@media(max-width:850px){
+  .sw-mobile-appbar[data-module=sale] strong{position:absolute;left:50%;transform:translateX(-50%);max-width:50%}
+  .sw-mobile-appbar a.sw-mobile-shift-dot{font-size:22px}
+  .sw-mobile-appbar a.sw-mobile-shift-dot.is-open{color:#00a36c}
+  .sw-mobile-appbar a.sw-mobile-shift-dot.is-closed{color:#d9434b}
+}
+
+/* --------------- */
+/* Mobile search bar cart badge */
+/* --------------- */
+.sw-sale-cart-btn{position:relative}
+.sw-sale-cart-count{position:absolute;top:-8px;right:-6px;min-width:17px;height:17px;padding:0 4px;border-radius:40px;background:#e14751;color:#fff;font:700 10px/17px Arial;text-align:center}
