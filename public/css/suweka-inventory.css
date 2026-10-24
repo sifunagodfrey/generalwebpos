@@ -72,3 +72,32 @@
     .swif-cancel,.swif-save{height:52px;font-size:14px}
     .swif-camera{display:block}
 }
+
+/* --------------- */
+/* Product Alerts Page */
+/* --------------- */
+.swia-header { margin-bottom: 24px; }
+.swia-search { display: flex; align-items: center; gap: 16px; padding: 12px 0; margin-bottom: 16px; border-bottom: 1px solid transparent; }
+.swia-search i { color: #4a5568; font-size: 20px; }
+.swia-search input { flex: 1; border: 0; background: transparent; outline: 0; font: inherit; font-size: 18px; color: #2b3549; }
+.swia-search input::placeholder { color: #a0aec0; }
+
+.swia-tabs { display: flex; flex-wrap: wrap; gap: 12px; }
+.swia-tab { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; border: 1px solid #d1c4e9; background: #fff; color: #2b3549; font-size: 14px; text-decoration: none; transition: background 0.15s, border-color 0.15s; }
+.swia-tab:hover { background: #f4effc; }
+.swia-tab.active { background: #f4effc; border-color: #f4effc; }
+.swia-count { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: #f4effc; color: #6c7890; font-size: 12px; font-weight: 600; }
+.swia-tab.active .swia-count { background: #eaddfd; color: #2b3549; }
+
+.swia-list { min-height: 300px; }
+.swia-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #ece4f9; color: #2b3549; text-decoration: none; }
+.swia-row:hover { background: #fdfcfe; }
+.swia-row strong { font-weight: 500; font-size: 14px; }
+.swia-empty { display: flex; align-items: center; justify-content: center; min-height: 300px; color: #6c7890; font-size: 16px; }
+
+.swia-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 32px; color: #4a5568; font-size: 14px; padding-top: 16px; }
+.swia-pager { display: flex; gap: 16px; align-items: center; }
+.swia-pager a, .swia-pager span.disabled { display: grid; place-items: center; width: 32px; height: 32px; color: #6c7890; text-decoration: none; }
+.swia-pager span.disabled { opacity: 0.4; cursor: not-allowed; }
+.swia-pager a:hover { color: #2b3549; }
+.swia-pager .refresh { font-size: 18px; }

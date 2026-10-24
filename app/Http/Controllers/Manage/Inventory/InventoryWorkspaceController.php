@@ -16,12 +16,6 @@ class InventoryWorkspaceController extends Controller
         abort_unless($user && method_exists($user, 'hasPermission') && ($user->hasPermission($permission) || $user->hasPermission('pos.products.manage')), 403);
     }
 
-    private function view(Request $request, string $page, string $template, array $values = [])
-    {
-        $item = collect(config('suweka_ui.inventory.items', []))->first(fn ($v) => $v[0] === $page) ?? [$page, ucfirst($page), 'box'];
-        return view($template, $values + ['modules' => config('suweka_ui'), 'module' => 'inventory', 'page' => $page, 'item' => $item]);
-    }
-
     private function lookups(): array
     {
         return [
@@ -38,9 +32,110 @@ class InventoryWorkspaceController extends Controller
             'products' => $this->products($request),
             'create' => $this->create($request),
             'categories', 'brands' => $this->lookupsIndex($request, $page),
-            'alerts', 'stocktake', 'backorders', 'reports' => $this->other($request, $page),
+            'alerts' => $this->alerts($request), // <-- Added
+            'stocktake', 'backorders', 'reports' => $this->other($request, $page),
             default => abort(404),
         };
+    }
+
+    private function view(Request $request, string $page, string $template, array $values = [])
+    {
+        $item = collect(config('suweka_ui.inventory.items', []))->first(fn ($v) => $v[0] === $page) ?? [$page, ucfirst($page), 'box'];
+        
+        // Calculate alerts count for the sidebar badge
+        $alertsCount = DB::table('su_products as p')
+            ->leftJoin('su_stock_batches as b', 'b.product_id', '=', 'p.id')
+            ->select('p.id')
+            ->groupBy('p.id')
+            ->havingRaw('COALESCE(SUM(b.quantity),0) <= 5')
+            ->get()->count();
+
+        return view($template, $values + [
+            'modules' => config('suweka_ui'), 
+            'module' => 'inventory', 
+            'page' => $page, 
+            'item' => $item,
+            'alertsCount' => $alertsCount
+        ]);
+    }
+
+    public function alerts(Request $request)
+    {
+        $this->authorizePos($request);
+        
+        $lowStockCount = DB::table('su_products as p')
+            ->leftJoin('su_stock_batches as b', 'b.product_id', '=', 'p.id')
+            ->select('p.id')
+            ->groupBy('p.id')
+            ->havingRaw('COALESCE(SUM(b.quantity),0) > 0 AND COALESCE(SUM(b.quantity),0) <= 5')
+            ->get()->count();
+
+        $outOfStockCount = DB::table('su_products as p')
+            ->leftJoin('su_stock_batches as b', 'b.product_id', '=', 'p.id')
+            ->select('p.id')
+            ->groupBy('p.id')
+            ->havingRaw('COALESCE(SUM(b.quantity),0) = 0')
+            ->get()->count();
+
+        $expiresSoonCount = DB::table('su_stock_batches')
+            ->where('quantity', '>', 0)
+            ->whereNotNull('expiry_date')
+            ->where('expiry_date', '>=', today())
+            ->where('expiry_date', '<=', today()->addDays(30))
+            ->count();
+
+        $expiredCount = DB::table('su_stock_batches')
+            ->where('quantity', '>', 0)
+            ->whereNotNull('expiry_date')
+            ->where('expiry_date', '<', today())
+            ->count();
+
+        $allCount = $lowStockCount + $outOfStockCount + $expiredCount;
+
+        $tab = $request->query('tab', 'all');
+        $search = trim((string) $request->query('q', ''));
+
+        $query = DB::table('su_products as p')
+            ->leftJoin('su_stock_batches as b', 'b.product_id', '=', 'p.id')
+            ->select('p.id', 'p.name')
+            ->selectRaw('COALESCE(SUM(b.quantity),0) as stock')
+            ->groupBy('p.id', 'p.name');
+
+        if ($search !== '') {
+            $query->where('p.name', 'like', '%' . addcslashes($search, '%_\\') . '%');
+        }
+
+        if ($tab === 'low') {
+            $query->havingRaw('COALESCE(SUM(b.quantity),0) > 0 AND COALESCE(SUM(b.quantity),0) <= 5');
+        } elseif ($tab === 'out') {
+            $query->havingRaw('COALESCE(SUM(b.quantity),0) = 0');
+        } elseif ($tab === 'expires') {
+            $query->whereExists(function ($q) {
+                $q->select(DB::raw(1))->from('su_stock_batches')
+                    ->whereColumn('product_id', 'p.id')
+                    ->where('quantity', '>', 0)
+                    ->whereNotNull('expiry_date')
+                    ->where('expiry_date', '>=', today())
+                    ->where('expiry_date', '<=', today()->addDays(30));
+            });
+        } elseif ($tab === 'expired') {
+            $query->whereExists(function ($q) {
+                $q->select(DB::raw(1))->from('su_stock_batches')
+                    ->whereColumn('product_id', 'p.id')
+                    ->where('quantity', '>', 0)
+                    ->whereNotNull('expiry_date')
+                    ->where('expiry_date', '<', today());
+            });
+        } elseif ($tab === 'all') {
+            $query->havingRaw('COALESCE(SUM(b.quantity),0) <= 5')
+                  ->orHavingRaw('EXISTS (SELECT 1 FROM su_stock_batches WHERE product_id = p.id AND quantity > 0 AND expiry_date IS NOT NULL AND expiry_date < CURRENT_DATE)');
+        }
+
+        $records = $query->orderBy('p.name')->paginate(20)->withQueryString();
+
+        return $this->view($request, 'alerts', 'manage.inventory.alerts', compact(
+            'records', 'search', 'tab', 'lowStockCount', 'outOfStockCount', 'expiresSoonCount', 'expiredCount', 'allCount'
+        ));
     }
 
     public function products(Request $request)

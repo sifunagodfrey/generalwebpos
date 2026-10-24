@@ -103,3 +103,8 @@
 /* --------------- */
 a.sw-person-row{color:inherit}
 a.sw-person-row:hover{background:#ece6f8}
+/* --------------- */
+/* Sidebar Nav Badge */
+/* --------------- */
+.sw-nav-badge { margin-left: auto; display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: #4d258a; color: #fff; font-size: 11px; font-weight: 700; }
+.sw-nav-link.active .sw-nav-badge { background: #ffffff33; color: #fff; }

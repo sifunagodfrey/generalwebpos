@@ -13,10 +13,13 @@
  <div class="sw-side-head"><a href="{{ route('manage.dashboard.index') }}" aria-label="Return to main menu"><i class="fa-solid fa-arrow-left"></i></a><strong>{{ $modules[$module]['label'] }}</strong><a class="sw-side-home" href="{{ route('manage.dashboard.index') }}" title="Main menu"><i class="fa-solid fa-house"></i></a></div>
  <nav class="sw-side-menu" aria-label="{{ $modules[$module]['label'] }} navigation">
  @foreach($modules[$module]['items'] as $nav)
- <a class="sw-nav-link {{ $page===$nav[0]?'active':'' }}" href="{{ route('manage.workspace.'.$module,['page'=>$nav[0]]) }}" @if($module==='customers' && ($nav[0]==='add' || strcasecmp($nav[1],'Add Customer')===0)) @click.prevent="customerModal=true;navOpen=false" @endif><i class="fa-solid fa-{{ $nav[2] }}"></i>{{-- --------------- --}}
-{{-- Held sales count beside the label --}}
-{{-- --------------- --}}
-<span>{{ $nav[1] }}@if($nav[0]==='held' && isset($heldSalesCount)) ({{ $heldSalesCount }})@endif</span></a>
+ <a class="sw-nav-link {{ $page===$nav[0]?'active':'' }}" href="{{ route('manage.workspace.'.$module,['page'=>$nav[0]]) }}" @if($module==='customers' && ($nav[0]==='add' || strcasecmp($nav[1],'Add Customer')===0)) @click.prevent="customerModal=true;navOpen=false" @endif>
+    <i class="fa-solid fa-{{ $nav[2] }}"></i>
+    <span>{{ $nav[1] }}@if($nav[0]==='held' && isset($heldSalesCount)) ({{ $heldSalesCount }})@endif</span>
+    @if($module === 'inventory' && $nav[0] === 'alerts')
+        <span class="sw-nav-badge">{{ $alertsCount ?? 0 }}</span>
+    @endif
+ </a>
  @endforeach
  </nav>
  <div class="sw-side-bottom"><a href="{{ route('manage.workspace.settings',['page'=>'vat']) }}"><i class="fa-solid fa-gear"></i> Settings</a><form method="POST" action="{{ route('manage.auth.logout') }}">@csrf<button type="submit"><i class="fa-solid fa-right-from-bracket"></i> Sign out</button></form></div>
