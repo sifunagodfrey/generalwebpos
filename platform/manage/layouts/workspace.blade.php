@@ -79,4 +79,5 @@
 @include('manage.layouts.partials.add-customer-modal')
 @endif
 <script src="{{ asset('js/suweka-workspace.js') }}" defer></script>
+@stack('scripts')
 </body></html>

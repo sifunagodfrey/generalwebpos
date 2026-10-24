@@ -34,10 +34,84 @@ class InventoryWorkspaceController extends Controller
             'brands' => $this->brandsIndex($request),
             'alerts' => $this->alerts($request),
             'stocktake' => $this->stocktake($request),
-            'backorders' => $this->backorders($request), 
-            'reports' => $this->other($request, $page),
+            'backorders' => $this->backorders($request),
+            'reports' => $this->reports($request),
             default => abort(404),
         };
+    }
+
+    public function reports(Request $request)
+    {
+        $this->authorizePos($request);
+
+        $startOfMonth = now()->startOfMonth();
+        $endOfMonth = now()->endOfMonth();
+
+        // 1. Metrics
+        $productsCount = DB::table('su_products')->where('is_active', 1)->count();
+        
+        $stockValue = DB::table('su_stock_batches as b')
+            ->join('su_products as p', 'p.id', '=', 'b.product_id')
+            ->sum(DB::raw('b.quantity * p.cost_price'));
+
+        $lowStockQuery = DB::table('su_products as p')
+            ->leftJoin('su_stock_batches as b', 'b.product_id', '=', 'p.id')
+            ->select('p.id')->groupBy('p.id')
+            ->havingRaw('COALESCE(SUM(b.quantity),0) > 0 AND COALESCE(SUM(b.quantity),0) <= 5');
+        $lowStockCount = $lowStockQuery->get()->count();
+
+        $outOfStockCount = DB::table('su_products as p')
+            ->leftJoin('su_stock_batches as b', 'b.product_id', '=', 'p.id')
+            ->select('p.id')->groupBy('p.id')
+            ->havingRaw('COALESCE(SUM(b.quantity),0) = 0')
+            ->get()->count();
+
+        // 2. Revenue Trend (This month)
+        $revenueData = DB::table('su_sales')
+            ->where('status', 'completed')
+            ->whereBetween('completed_at', [$startOfMonth, $endOfMonth])
+            ->select(DB::raw('DATE(completed_at) as date'), DB::raw('SUM(total) as daily_total'))
+            ->groupBy('date')->orderBy('date')->pluck('daily_total', 'date')->toArray();
+
+        $daysInMonth = now()->daysInMonth;
+        $trendLabels = []; $trendValues = [];
+        $totalRevenue = 0; $bestDay = 0;
+
+        for ($i = 1; $i <= $daysInMonth; $i++) {
+            $date = now()->startOfMonth()->addDays($i - 1)->format('Y-m-d');
+            $val = (float) ($revenueData[$date] ?? 0);
+            $trendLabels[] = $i . '/' . now()->month;
+            $trendValues[] = $val;
+            $totalRevenue += $val;
+            if ($val > $bestDay) $bestDay = $val;
+        }
+        $dailyAverage = $daysInMonth > 0 ? $totalRevenue / $daysInMonth : 0;
+
+        // 3. Top Sellers
+        $topSellers = DB::table('su_sale_items as i')
+            ->join('su_sales as s', 's.id', '=', 'i.sale_id')
+            ->join('su_products as p', 'p.id', '=', 'i.product_id')
+            ->where('s.status', 'completed')
+            ->whereBetween('s.completed_at', [$startOfMonth, $endOfMonth])
+            ->select('p.name', DB::raw('SUM(i.quantity) as units_sold'), DB::raw('SUM(i.line_total) as revenue'))
+            ->groupBy('p.id', 'p.name')->orderByDesc('revenue')->limit(10)->get();
+        
+        $maxSellerRevenue = $topSellers->max('revenue') ?: 1;
+
+        // 4. Stock Value by Category
+        $categoryValues = DB::table('su_stock_batches as b')
+            ->join('su_products as p', 'p.id', '=', 'b.product_id')
+            ->leftJoin('su_categories as c', 'c.id', '=', 'p.category_id')
+            ->select(DB::raw("COALESCE(c.name, 'Uncategorized') as category_name"), DB::raw('SUM(b.quantity * p.cost_price) as value'))
+            ->groupBy('category_name')->orderByDesc('value')->get();
+        
+        $totalCategoryValue = $categoryValues->sum('value') ?: 1;
+
+        return $this->view($request, 'reports', 'manage.inventory.reports.index', compact(
+            'productsCount', 'stockValue', 'lowStockCount', 'outOfStockCount',
+            'trendLabels', 'trendValues', 'totalRevenue', 'dailyAverage', 'bestDay',
+            'topSellers', 'maxSellerRevenue', 'categoryValues', 'totalCategoryValue'
+        ));
     }
 
     public function backorders(Request $request)
