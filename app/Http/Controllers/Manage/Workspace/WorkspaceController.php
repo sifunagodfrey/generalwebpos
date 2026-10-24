@@ -176,9 +176,14 @@ class WorkspaceController extends Controller
             if ($page === 'index' || $page === null) {
                 return $this->home();
             }
-            // UPDATE THIS LINE to accept 'trends' as well
             if (in_array($page, ['sales-trends', 'trends'], true)) {
                 return $this->salesTrends();
+            }
+            if (in_array($page, ['stock-alerts', 'alerts'], true)) {
+                return $this->stockAlerts($request);
+            }
+            if (in_array($page, ['customers-owing', 'owing', 'ledger'], true)) {
+                return $this->customersOwing($request);
             }
         }
 
@@ -247,5 +252,144 @@ class WorkspaceController extends Controller
         }
         
         return view('manage.workspace.page',compact('modules','module','page','item','records','stats','plot'));
+    }
+
+        public function stockAlerts(Request $request)
+    {
+        // 1. Fetch data (copied from InventoryWorkspaceController)
+        $lowStockCount = DB::table('su_products as p')
+            ->leftJoin('su_stock_batches as b', 'b.product_id', '=', 'p.id')
+            ->select('p.id')->groupBy('p.id')
+            ->havingRaw('COALESCE(SUM(b.quantity),0) > 0 AND COALESCE(SUM(b.quantity),0) <= 5')
+            ->get()->count();
+
+        $outOfStockCount = DB::table('su_products as p')
+            ->leftJoin('su_stock_batches as b', 'b.product_id', '=', 'p.id')
+            ->select('p.id')->groupBy('p.id')
+            ->havingRaw('COALESCE(SUM(b.quantity),0) = 0')
+            ->get()->count();
+
+        $expiresSoonCount = DB::table('su_stock_batches')
+            ->where('quantity', '>', 0)
+            ->whereNotNull('expiry_date')
+            ->where('expiry_date', '>=', today())
+            ->where('expiry_date', '<=', today()->addDays(30))
+            ->count();
+
+        $expiredCount = DB::table('su_stock_batches')
+            ->where('quantity', '>', 0)
+            ->whereNotNull('expiry_date')
+            ->where('expiry_date', '<', today())
+            ->count();
+
+        $allCount = $lowStockCount + $outOfStockCount + $expiredCount;
+
+        $tab = $request->query('tab', 'all');
+        $search = trim((string) $request->query('q', ''));
+
+        $query = DB::table('su_products as p')
+            ->leftJoin('su_stock_batches as b', 'b.product_id', '=', 'p.id')
+            ->select('p.id', 'p.name')
+            ->selectRaw('COALESCE(SUM(b.quantity),0) as stock')
+            ->groupBy('p.id', 'p.name');
+
+        if ($search !== '') {
+            $query->where('p.name', 'like', '%' . addcslashes($search, '%_\\') . '%');
+        }
+
+        if ($tab === 'low') {
+            $query->havingRaw('COALESCE(SUM(b.quantity),0) > 0 AND COALESCE(SUM(b.quantity),0) <= 5');
+        } elseif ($tab === 'out') {
+            $query->havingRaw('COALESCE(SUM(b.quantity),0) = 0');
+        } elseif ($tab === 'expires') {
+            $query->whereExists(function ($q) {
+                $q->select(DB::raw(1))->from('su_stock_batches')
+                    ->whereColumn('product_id', 'p.id')
+                    ->where('quantity', '>', 0)
+                    ->whereNotNull('expiry_date')
+                    ->where('expiry_date', '>=', today())
+                    ->where('expiry_date', '<=', today()->addDays(30));
+            });
+        } elseif ($tab === 'expired') {
+            $query->whereExists(function ($q) {
+                $q->select(DB::raw(1))->from('su_stock_batches')
+                    ->whereColumn('product_id', 'p.id')
+                    ->where('quantity', '>', 0)
+                    ->whereNotNull('expiry_date')
+                    ->where('expiry_date', '<', today());
+            });
+        } elseif ($tab === 'all') {
+            $query->havingRaw('COALESCE(SUM(b.quantity),0) <= 5')
+                  ->orHavingRaw('EXISTS (SELECT 1 FROM su_stock_batches WHERE product_id = p.id AND quantity > 0 AND expiry_date IS NOT NULL AND expiry_date < CURRENT_DATE)');
+        }
+
+        $records = $query->orderBy('p.name')->paginate(20)->withQueryString();
+
+        // 2. Force the layout to stay on Dashboard
+        $modules = config('suweka_ui');
+        $page = 'stock-alerts'; // Ensure this matches the slug in your config/suweka_ui.php
+        $item = collect($modules['dashboard']['items'] ?? [])->first(fn ($i) => $i[0] === $page) ?? [$page, 'Stock Alerts', 'exclamation-triangle'];
+
+        return view('manage.inventory.alerts', compact(
+            'records', 'search', 'tab', 'lowStockCount', 'outOfStockCount', 'expiresSoonCount', 'expiredCount', 'allCount'
+        ) + [
+            'modules' => $modules,
+            'module' => 'dashboard', // Keeps the sidebar in the Dashboard module!
+            'page' => $page,
+            'item' => $item,
+            'alertsCount' => $allCount
+        ]);
+    }
+
+    public function customersOwing(Request $request)
+    {
+        // 1. Fetch data (copied from CreditLedgerController)
+        $inputs = $request->validate([
+            'q'       => 'nullable|string|max:100',
+            'balance' => 'nullable|in:all,over_limit',
+            'sort'    => 'nullable|in:highest,lowest,name',
+        ]);
+        $search  = trim((string) ($inputs['q'] ?? ''));
+        $balance = $inputs['balance'] ?? 'all';
+        $sort    = $inputs['sort'] ?? 'highest';
+
+        $owing = DB::table('su_customers')->where('credit_balance', '>', 0);
+        $owingCount = (clone $owing)->count();
+        $owingTotal = (float) (clone $owing)->sum('credit_balance');
+
+        $records = $owing
+            ->when($search !== '', function ($q) use ($search) {
+                $like = '%' . addcslashes($search, '%_\\') . '%';
+                $q->where(function ($x) use ($like) {
+                    $x->where('first_name', 'like', $like)
+                      ->orWhere('last_name', 'like', $like)
+                      ->orWhere('phone', 'like', $like)
+                      ->orWhere('email', 'like', $like)
+                      ->orWhereRaw("CONCAT(first_name, ' ', COALESCE(last_name, '')) like ?", [$like]);
+                });
+            })
+            ->when($balance === 'over_limit', fn ($q) => $q->whereNotNull('credit_limit')->whereColumn('credit_balance', '>', 'credit_limit'))
+            ->when($sort === 'highest', fn ($q) => $q->orderByDesc('credit_balance'))
+            ->when($sort === 'lowest', fn ($q) => $q->orderBy('credit_balance'))
+            ->when($sort === 'name', fn ($q) => $q->orderBy('first_name')->orderBy('last_name'))
+            ->paginate(50)->withQueryString();
+
+        // 2. Force the layout to stay on Dashboard
+        $modules = config('suweka_ui');
+        $page = 'customers-owing'; // Ensure this matches the slug in your config/suweka_ui.php
+        $item = collect($modules['dashboard']['items'] ?? [])->first(fn ($i) => $i[0] === $page) ?? [$page, 'Customers Owing', 'wallet'];
+
+        return view('manage.customers.ledger', [
+            'modules'    => $modules,
+            'module'     => 'dashboard', // Keeps the sidebar in the Dashboard module!
+            'page'       => $page,
+            'item'       => $item,
+            'records'    => $records,
+            'owingCount' => $owingCount,
+            'owingTotal' => $owingTotal,
+            'search'     => $search,
+            'balance'    => $balance,
+            'sort'       => $sort,
+        ]);
     }
 }

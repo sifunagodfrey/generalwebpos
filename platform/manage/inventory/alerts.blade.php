@@ -1,6 +1,6 @@
 @extends('manage.layouts.workspace')
-@section('title', 'Product Alerts')
-@section('heading', 'Product Alerts')
+@section('title', $item[1] ?? 'Product Alerts')
+@section('heading', $item[1] ?? 'Product Alerts')
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/suweka-inventory.css') }}?v={{ filemtime(public_path('css/suweka-inventory.css')) }}">

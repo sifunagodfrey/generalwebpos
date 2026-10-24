@@ -1,6 +1,6 @@
 @extends('manage.layouts.workspace')
-@section('title','Credit Ledger')
-@section('heading','Credit Ledger')
+@section('title', $item[1] ?? 'Credit Ledger')
+@section('heading', $item[1] ?? 'Credit Ledger')
 @section('content')
 <form method="GET" action="{{ route('manage.customers.ledger') }}" class="swl">
     <p class="swl-summary">{{ $owingCount }} customers owing &bull; Total {{ number_format($owingTotal, 0) }}</p>
