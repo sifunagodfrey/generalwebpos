@@ -9,15 +9,19 @@
     $paymentTypes = ['payment', 'repayment'];
     $owes = (float) $customer->credit_balance > 0;
 @endphp
-<div class="swc">
-    <section class="swc-card">
+<div class="swc" x-data="{ modal: @js(old('_modal')) }">
+        <section class="swc-card">
+        @if(session('status'))<p class="swc-flash">{{ session('status') }}</p>@endif
+        @if($errors->any() && !old('_modal'))<p class="swc-flash swc-flash--error">{{ $errors->first() }}</p>@endif
         <h2>{{ trim($customer->first_name.' '.($customer->last_name ?? '')) }}</h2>
         <p class="swc-phone">{{ $customer->phone }}</p>
         <p class="swc-balance">Balance owed: {{ number_format((float) $customer->credit_balance, 0) }}</p>
         <div class="swc-actions">
-            <button type="button" class="swc-btn swc-btn--primary" disabled title="Not connected yet"><i class="fa-solid fa-money-bill-wave"></i> Record payment</button>
-            <button type="button" class="swc-btn swc-btn--outline" disabled title="Not connected yet"><i class="fa-solid fa-plus"></i> Add debt</button>
-            <button type="button" class="swc-btn {{ $owes ? 'swc-btn--outline' : 'swc-btn--ghost' }}" disabled title="Not connected yet"><i class="fa-solid fa-check-double"></i> Mark as paid</button>
+            @can_do('pos.customers.manage')
+                <button type="button" class="swc-btn swc-btn--primary" :disabled="{{ $owes ? 'false' : 'true' }}" @click="modal='payment'"><i class="fa-solid fa-money-bill-wave"></i> Record payment</button>
+                <button type="button" class="swc-btn swc-btn--outline" @click="modal='debt'"><i class="fa-solid fa-plus"></i> Add debt</button>
+                <button type="button" class="swc-btn {{ $owes ? 'swc-btn--outline' : 'swc-btn--ghost' }}" @if(!$owes) disabled @endif @click="modal='settle'"><i class="fa-solid fa-check-double"></i> Mark as paid</button>
+            @endcan_do
         </div>
     </section>
 
@@ -47,6 +51,67 @@
     @empty
         <p class="swc-empty">No activity yet.</p>
     @endforelse
+
+    {{-- --------------- --}}
+    {{-- Record payment or debt dialog --}}
+    {{-- --------------- --}}
+    <div class="sw-md-overlay" x-cloak x-show="modal==='payment'" x-transition.opacity @keydown.escape.window="modal=null" @click.self="modal=null">
+        <form class="sw-md-dialog sw-cd" method="POST" action="{{ route('manage.customers.payment', $customer->id) }}" @click.stop>
+            @csrf
+            <input type="hidden" name="_modal" value="payment">
+            <h3>Record payment or debt</h3>
+            <div class="sw-cd-field">
+                <label for="cd-pay-amount">Amount</label>
+                <input id="cd-pay-amount" type="number" name="amount" required step="any" value="{{ old('_modal') === 'payment' ? old('amount') : '' }}" x-ref="payAmount" x-effect="if (modal==='payment') $nextTick(() => $refs.payAmount.focus())">
+                <p>Positive: payment. Negative: add debt (e.g. -20).</p>
+            </div>
+            <input class="sw-cd-note" type="text" name="note" maxlength="255" placeholder="Note (optional)" value="{{ old('_modal') === 'payment' ? old('note') : '' }}">
+            @if($errors->any() && old('_modal') === 'payment')<p class="sw-md-error">{{ $errors->first() }}</p>@endif
+            <div class="sw-md-actions">
+                <button type="button" class="sw-md-cancel" @click="modal=null">Cancel</button>
+                <button type="submit" class="sw-md-save">Record</button>
+            </div>
+        </form>
+    </div>
+
+    {{-- --------------- --}}
+    {{-- Add debt dialog --}}
+    {{-- --------------- --}}
+    <div class="sw-md-overlay" x-cloak x-show="modal==='debt'" x-transition.opacity @keydown.escape.window="modal=null" @click.self="modal=null">
+        <form class="sw-md-dialog sw-cd" method="POST" action="{{ route('manage.customers.debt', $customer->id) }}" @click.stop>
+            @csrf
+            <input type="hidden" name="_modal" value="debt">
+            <h3>Add debt</h3>
+            <div class="sw-cd-field">
+                <label for="cd-debt-amount">Debt amount</label>
+                <input id="cd-debt-amount" type="number" name="amount" required min="0.01" step="any" inputmode="decimal" value="{{ old('_modal') === 'debt' ? old('amount') : '' }}" x-ref="debtAmount" x-effect="if (modal==='debt') $nextTick(() => $refs.debtAmount.focus())">
+                <p>This amount will increase the balance owed.</p>
+            </div>
+            <input class="sw-cd-note" type="text" name="note" maxlength="255" placeholder="Note (optional)" value="{{ old('_modal') === 'debt' ? old('note') : '' }}">
+            @if($errors->any() && old('_modal') === 'debt')<p class="sw-md-error">{{ $errors->first() }}</p>@endif
+            <div class="sw-md-actions">
+                <button type="button" class="sw-md-cancel" @click="modal=null">Cancel</button>
+                <button type="submit" class="sw-md-save">Add debt</button>
+            </div>
+        </form>
+    </div>
+
+    {{-- --------------- --}}
+    {{-- Mark as paid confirmation --}}
+    {{-- --------------- --}}
+    <div class="sw-md-overlay" x-cloak x-show="modal==='settle'" x-transition.opacity @keydown.escape.window="modal=null" @click.self="modal=null">
+        <form class="sw-md-dialog" method="POST" action="{{ route('manage.customers.settle', $customer->id) }}" @click.stop>
+            @csrf
+            <input type="hidden" name="_modal" value="settle">
+            <h3>Mark as paid</h3>
+            <p class="sw-md-note">This records a payment of {{ number_format((float) $customer->credit_balance, 0) }} and clears the balance for {{ trim($customer->first_name.' '.($customer->last_name ?? '')) }}.</p>
+            @if($errors->any() && old('_modal') === 'settle')<p class="sw-md-error">{{ $errors->first() }}</p>@endif
+            <div class="sw-md-actions">
+                <button type="button" class="sw-md-cancel" @click="modal=null">Cancel</button>
+                <button type="submit" class="sw-md-save">Confirm</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <style>
@@ -94,5 +159,26 @@
   .swc-sales::-webkit-scrollbar{display:none}
   .swc-sale{flex:none;width:150px;scroll-snap-align:start}
 }
+
+.swc-flash{margin:0 0 14px;padding:12px 14px;border-radius:10px;background:#e0f5e9;color:#137c40;font-size:14px}
+.swc-flash--error{background:#fff0ed;color:#b23135}
+.swc-btn:disabled{opacity:.55}
+
+/* --------------- */
+/* Customer credit dialogs (match the Flutter reference) */
+/* --------------- */
+.sw-md-dialog.sw-cd{width:auto;min-width:min(300px,100%);max-width:min(380px,100%);padding:28px;border-radius:28px;background:#ece6f0}
+.sw-cd h3{margin:0 0 22px;font-size:28px;font-weight:400;line-height:1.25;color:#1d1b20}
+.sw-cd-field label{display:block;font-size:14px;color:#713fce}
+.sw-cd-field input{display:block;width:100%;height:38px;padding:0;border:0;border-bottom:1px solid #79747e;border-radius:0;background:transparent;outline:0;font:inherit;font-size:16px;color:#1d1b20}
+.sw-cd-field input:focus{border-bottom:2px solid #713fce}
+.sw-cd-field p{margin:8px 0 0;font-size:14px;line-height:1.5;color:#49454f}
+.sw-cd-note{display:block;width:100%;height:46px;margin-top:14px;padding:0;border:0;border-bottom:1px solid #79747e;border-radius:0;background:transparent;outline:0;font:inherit;font-size:18px;color:#1d1b20}
+.sw-cd-note::placeholder{color:#49454f}
+.sw-cd-note:focus{border-bottom:2px solid #713fce}
+.sw-md-dialog.sw-cd .sw-md-actions{margin-top:30px}
+.sw-md-dialog.sw-cd .sw-md-save{height:48px;padding:0 24px;border-radius:20px;font-size:16px}
+.sw-md-dialog.sw-cd .sw-md-cancel{padding:10px 16px;font-size:16px;font-weight:500}
+@media(max-width:850px){.sw-md-dialog.sw-cd{max-width:100%;min-width:100%}.sw-md-dialog.sw-cd .sw-md-save{border-radius:16px}}
 </style>
 @endsection
