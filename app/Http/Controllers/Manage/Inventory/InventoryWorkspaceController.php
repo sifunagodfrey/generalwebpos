@@ -24,18 +24,17 @@ class InventoryWorkspaceController extends Controller
             'units' => DB::table('su_units_of_measure')->orderBy('name')->get(['id', 'name']),
         ];
     }
-
     public function section(Request $request, string $page = 'products')
     {
         $this->authorizePos($request);
         return match ($page) {
-            'products' => $this->products($request),
-            'create' => $this->create($request),
-            'categories' => $this->categoriesIndex($request), // <-- Change this line
-            'brands' => $this->lookupsIndex($request, $page),
-            'alerts' => $this->alerts($request),
+            'products'   => $this->products($request),
+            'create'     => $this->create($request),
+            'categories' => $this->categoriesIndex($request),
+            'brands'     => $this->brandsIndex($request),   // <-- was $this->lookupsIndex($request, $page)
+            'alerts'     => $this->alerts($request),
             'stocktake', 'backorders', 'reports' => $this->other($request, $page),
-            default => abort(404),
+            default      => abort(404),
         };
     }
 
@@ -108,6 +107,104 @@ class InventoryWorkspaceController extends Controller
             ->with('status', 'Category created.');
     }
 
+    public function brandsIndex(Request $request)
+    {
+        $this->authorizePos($request);
+        $search = mb_substr(trim((string) $request->query('q', '')), 0, 100);
+
+        $brands = DB::table('su_brands as b')
+            ->select('b.*')
+            ->selectRaw('(SELECT COUNT(*) FROM su_products p WHERE p.brand_id = b.id) as products_count')
+            ->when($search !== '', fn ($q) => $q->where('b.name', 'like', '%' . addcslashes($search, '%_\\') . '%'))
+            ->orderBy('b.name')
+            ->paginate(24)
+            ->withQueryString();
+
+        return $this->view($request, 'brands', 'manage.inventory.brands.index', compact('brands', 'search'));
+    }
+
+    public function createBrand(Request $request)
+    {
+        $this->authorizePos($request, 'pos.products.create');
+        return $this->view($request, 'brands', 'manage.inventory.brands.form');
+    }
+
+    public function storeBrand(Request $request)
+    {
+        $this->authorizePos($request, 'pos.products.create');
+
+        $data = $request->validate([
+            'name'        => ['required', 'string', 'max:100'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'image'       => ['nullable', 'image', 'max:2048'],
+        ]);
+
+        if ($request->hasFile('image')) {
+            $media = app(UploadService::class)->store($request->file('image'), 'brands');
+            $data['image_path'] = $media->file_path;
+        }
+        unset($data['image']);
+        $data['created_at'] = now();
+
+        DB::table('su_brands')->insert($data);
+
+        return redirect()
+            ->route('manage.workspace.inventory', ['page' => 'brands'])
+            ->with('status', 'Brand created.');
+    }
+
+    public function editBrand(Request $request, int $brand)
+    {
+        $this->authorizePos($request, 'pos.products.update');
+
+        $record = DB::table('su_brands')->where('id', $brand)->first();
+        abort_unless($record, 404);
+
+        return $this->view($request, 'brands', 'manage.inventory.brands.form', ['brand' => $record]);
+    }
+
+    public function updateBrand(Request $request, int $brand)
+    {
+        $this->authorizePos($request, 'pos.products.update');
+        abort_unless(DB::table('su_brands')->where('id', $brand)->exists(), 404);
+
+        $data = $request->validate([
+            'name'        => ['required', 'string', 'max:100'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'image'       => ['nullable', 'image', 'max:2048'],
+        ]);
+
+        if ($request->hasFile('image')) {
+            $media = app(UploadService::class)->store($request->file('image'), 'brands');
+            $data['image_path'] = $media->file_path;
+        }
+        unset($data['image']);
+
+        DB::table('su_brands')->where('id', $brand)->update($data);
+
+        return redirect()
+            ->route('manage.workspace.inventory', ['page' => 'brands'])
+            ->with('status', 'Brand updated.');
+    }
+
+    public function destroyBrand(Request $request, int $brand)
+    {
+        $this->authorizePos($request, 'pos.products.delete');
+        abort_unless(DB::table('su_brands')->where('id', $brand)->exists(), 404);
+
+        $usedBy = DB::table('su_products')->where('brand_id', $brand)->count();
+        if ($usedBy > 0) {
+            return back()->withErrors([
+                'brand' => 'This brand is still linked to ' . $usedBy . ' product(s). Reassign them first.',
+            ]);
+        }
+
+        DB::table('su_brands')->where('id', $brand)->delete();
+
+        return redirect()
+            ->route('manage.workspace.inventory', ['page' => 'brands'])
+            ->with('status', 'Brand deleted.');
+    }
     public function editCategory(Request $request, int $category)
     {
         $this->authorizePos($request, 'pos.products.update');
