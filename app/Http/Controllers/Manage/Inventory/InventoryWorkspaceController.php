@@ -31,8 +31,9 @@ class InventoryWorkspaceController extends Controller
         return match ($page) {
             'products' => $this->products($request),
             'create' => $this->create($request),
-            'categories', 'brands' => $this->lookupsIndex($request, $page),
-            'alerts' => $this->alerts($request), // <-- Added
+            'categories' => $this->categoriesIndex($request), // <-- Change this line
+            'brands' => $this->lookupsIndex($request, $page),
+            'alerts' => $this->alerts($request),
             'stocktake', 'backorders', 'reports' => $this->other($request, $page),
             default => abort(404),
         };
@@ -40,7 +41,8 @@ class InventoryWorkspaceController extends Controller
 
     private function view(Request $request, string $page, string $template, array $values = [])
     {
-        $item = collect(config('suweka_ui.inventory.items', []))->first(fn ($v) => $v[0] === $page) ?? [$page, ucfirst($page), 'box'];
+        $lookupPage = str_contains($page, 'categories') ? 'categories' : $page;
+        $item = collect(config('suweka_ui.inventory.items', []))->first(fn ($v) => $v[0] === $lookupPage) ?? [$lookupPage, ucfirst($lookupPage), 'box'];
         
         // Calculate alerts count for the sidebar badge
         $alertsCount = DB::table('su_products as p')
@@ -53,10 +55,125 @@ class InventoryWorkspaceController extends Controller
         return view($template, $values + [
             'modules' => config('suweka_ui'), 
             'module' => 'inventory', 
-            'page' => $page, 
+            'page' => $lookupPage, 
             'item' => $item,
             'alertsCount' => $alertsCount
         ]);
+    }
+
+    public function categoriesIndex(Request $request)
+    {
+        $this->authorizePos($request);
+        $search = mb_substr(trim((string) $request->query('q', '')), 0, 100);
+        
+        $categories = DB::table('su_categories as c')
+            ->select('c.*')
+            ->selectRaw('(SELECT COUNT(*) FROM su_products p WHERE p.category_id = c.id) as products_count')
+            ->when($search !== '', fn ($q) => $q->where('c.name', 'like', '%' . addcslashes($search, '%_\\') . '%'))
+            ->orderBy('c.name')
+            ->paginate(24)
+            ->withQueryString();
+
+        return $this->view($request, 'categories', 'manage.inventory.categories.index', compact('categories', 'search'));
+    }
+
+    public function createCategory(Request $request)
+    {
+        $this->authorizePos($request, 'pos.products.create');
+        $parents = DB::table('su_categories')->orderBy('name')->get(['id', 'name']);
+        return $this->view($request, 'categories.create', 'manage.inventory.categories.form', compact('parents'));
+    }
+
+    public function storeCategory(Request $request)
+    {
+        $this->authorizePos($request, 'pos.products.create');
+        
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'parent_id' => ['nullable', 'integer', 'exists:su_categories,id'],
+            'image' => ['nullable', 'image', 'max:2048'],
+        ]);
+
+        if ($request->hasFile('image')) {
+            $media = app(UploadService::class)->store($request->file('image'), 'categories');
+            $data['image_path'] = $media->file_path;
+        }
+        unset($data['image']);
+        $data['created_at'] = now();
+
+        DB::table('su_categories')->insert($data);
+
+        return redirect()->route('manage.workspace.inventory', ['page' => 'categories'])
+            ->with('status', 'Category created.');
+    }
+
+    public function editCategory(Request $request, int $category)
+    {
+        $this->authorizePos($request, 'pos.products.update');
+
+        $record = DB::table('su_categories')->where('id', $category)->first();
+        abort_unless($record, 404);
+
+        // Exclude the category itself from the parent picker so it cannot
+        // become its own parent.
+        $parents = DB::table('su_categories')
+            ->where('id', '!=', $category)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return $this->view($request, 'categories', 'manage.inventory.categories.form', [
+            'category' => $record,
+            'parents'  => $parents,
+        ]);
+    }
+
+    public function updateCategory(Request $request, int $category)
+    {
+        $this->authorizePos($request, 'pos.products.update');
+        abort_unless(DB::table('su_categories')->where('id', $category)->exists(), 404);
+
+        $data = $request->validate([
+            'name'        => ['required', 'string', 'max:100'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'parent_id'   => ['nullable', 'integer', 'exists:su_categories,id'],
+            'image'       => ['nullable', 'image', 'max:2048'],
+        ]);
+
+        if (isset($data['parent_id']) && (int) $data['parent_id'] === $category) {
+            return back()->withErrors(['parent_id' => 'A category cannot be its own parent.']);
+        }
+
+        if ($request->hasFile('image')) {
+            $media = app(UploadService::class)->store($request->file('image'), 'categories');
+            $data['image_path'] = $media->file_path;
+        }
+        unset($data['image']);
+
+        DB::table('su_categories')->where('id', $category)->update($data);
+
+        return redirect()
+            ->route('manage.workspace.inventory', ['page' => 'categories'])
+            ->with('status', 'Category updated.');
+    }
+
+    public function destroyCategory(Request $request, int $category)
+    {
+        $this->authorizePos($request, 'pos.products.delete');
+        abort_unless(DB::table('su_categories')->where('id', $category)->exists(), 404);
+
+        $usedBy = DB::table('su_products')->where('category_id', $category)->count();
+        if ($usedBy > 0) {
+            return back()->withErrors([
+                'category' => 'This category is still linked to ' . $usedBy . ' product(s). Reassign them first.',
+            ]);
+        }
+
+        DB::table('su_categories')->where('id', $category)->delete();
+
+        return redirect()
+            ->route('manage.workspace.inventory', ['page' => 'categories'])
+            ->with('status', 'Category deleted.');
     }
 
     public function alerts(Request $request)

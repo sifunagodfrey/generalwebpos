@@ -101,3 +101,85 @@
 .swia-pager span.disabled { opacity: 0.4; cursor: not-allowed; }
 .swia-pager a:hover { color: #2b3549; }
 .swia-pager .refresh { font-size: 18px; }
+
+/* --------------- */
+/* Categories Module */
+/* --------------- */
+.swic-page { max-width: 100%; margin: 0 auto; }
+
+/* Index View */
+.swic-top-card { background: #fff; border-radius: 8px; padding: 24px; margin-bottom: 24px; border: 1px solid #f3effb; }
+.swic-search-bar { display: flex; align-items: center; gap: 16px; background: #f4effc; border-radius: 8px; padding: 0 16px; height: 48px; margin-bottom: 20px; }
+.swic-search-bar i { color: #4a5568; font-size: 18px; }
+.swic-search-bar input { flex: 1; border: 0; background: transparent; outline: 0; font: inherit; font-size: 16px; color: #2b3549; }
+.swic-search-bar input::placeholder { color: #718096; }
+.swic-btn-new { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 24px; border-radius: 10px; background: #713fce; color: #fff; font-size: 15px; font-weight: 600; text-decoration: none; border: 0; cursor: pointer; transition: background 0.15s; }
+.swic-btn-new:hover { background: #5a31a6; }
+.swic-list-area { min-height: 200px; }
+.swic-empty-state { display: flex; align-items: center; justify-content: center; min-height: 400px; color: #718096; font-size: 16px; }
+
+/* Create/Edit Form View */
+.swic-form-page { max-width: 680px; margin: 0 auto; }
+.swic-form { display: grid; gap: 32px; }
+.swic-image-upload { display: flex; align-items: center; gap: 16px; }
+.swic-image-placeholder { display: grid; place-items: center; width: 80px; height: 80px; border-radius: 12px; background: #f4effc; color: #713fce; font-size: 28px; }
+.swic-image-preview { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; }
+.swic-add-image-btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; border: 1px solid #a0aec0; border-radius: 999px; background: #fff; color: #713fce; font-size: 15px; font-weight: 500; cursor: pointer; transition: border-color 0.15s; }
+.swic-add-image-btn:hover { border-color: #713fce; }
+.swic-fields { display: grid; gap: 32px; }
+.swic-field { display: block; }
+.swic-field span { display: block; margin-bottom: 8px; font-size: 15px; color: #4a5568; }
+.swic-field input, .swic-field textarea, .swic-field select { display: block; width: 100%; padding: 8px 0; border: 0; border-bottom: 1px solid #cbd5e0; border-radius: 0; background: transparent; outline: 0; font: inherit; font-size: 16px; color: #2b3549; resize: vertical; }
+.swic-field input:focus, .swic-field textarea:focus, .swic-field select:focus { border-bottom-color: #713fce; }
+.swic-field--select { position: relative; }
+.swic-field--select select { appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 20px; }
+.swic-field--select::after { content: '\f0d7'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; right: 4px; bottom: 12px; color: #a0aec0; pointer-events: none; }
+.swic-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+.swic-btn-cancel, .swic-btn-save { display: flex; align-items: center; justify-content: center; height: 48px; border-radius: 10px; font-size: 15px; font-weight: 600; text-decoration: none; cursor: pointer; }
+.swic-btn-cancel { border: 1px solid #a0aec0; background: #fff; color: #713fce; }
+.swic-btn-save { border: 0; background: #713fce; color: #fff; }
+.swic-btn-save:hover { background: #5a31a6; }
+
+/* --------------- */
+/* Categories Module */
+/* --------------- */
+.swic-page { max-width: 100%; margin: 0 auto; }
+
+/* Top Search & Button Card */
+.swic-top-card { background: #fff; border-radius: 10px; padding: 24px; margin-bottom: 24px; border: 1px solid #f3effb; }
+.swic-search-bar { display: flex; align-items: center; gap: 16px; background: #f8f5fd; border-radius: 8px; padding: 0 16px; height: 48px; margin-bottom: 20px; border: 1px solid #f1ecfa; }
+.swic-search-bar i { color: #4a5568; font-size: 18px; }
+.swic-search-bar input { flex: 1; border: 0; background: transparent; outline: 0; font: inherit; font-size: 16px; color: #2b3549; }
+.swic-search-bar input::placeholder { color: #718096; }
+.swic-btn-new { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 24px; border-radius: 10px; background: #713fce; color: #fff; font-size: 15px; font-weight: 600; text-decoration: none; border: 0; cursor: pointer; transition: background 0.15s; }
+.swic-btn-new:hover { background: #5a31a6; }
+
+/* Categories Grid */
+.swic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; }
+.swic-grid-card { background: #fff; border: 1px solid #f3effb; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; transition: box-shadow 0.2s; }
+.swic-grid-card:hover { box-shadow: 0 4px 12px rgba(113, 63, 206, 0.08); }
+
+/* Card Image */
+.swic-card-image { height: 180px; display: flex; align-items: center; justify-content: center; background: #f8f5fd; color: #713fce; font-size: 40px; position: relative; }
+.swic-card-image img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Card Content */
+.swic-card-body { padding: 16px 20px; display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid #f3effb; flex: 1; }
+.swic-card-info { display: flex; flex-direction: column; gap: 6px; }
+.swic-card-info strong { font-size: 15px; color: #2b3549; font-weight: 700; }
+.swic-card-info small { font-size: 13px; color: #718096; }
+.swic-card-actions { display: flex; align-items: center; gap: 12px; color: #4a5568; }
+.swic-card-actions a, .swic-card-actions button { background: none; border: none; cursor: pointer; font-size: 16px; color: #4a5568; padding: 0; display: inline-flex; align-items: center; justify-content: center; transition: color 0.15s; text-decoration: none; }
+.swic-card-actions a:hover, .swic-card-actions button:hover { color: #713fce; }
+.swic-delete-btn { width: auto; height: auto; }
+
+/* Empty State */
+.swic-empty-state { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; min-height: 400px; color: #718096; font-size: 16px; }
+
+/* Mobile Adjustments */
+@media (max-width: 640px) {
+    .swic-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+    .swic-card-image { height: 140px; }
+    .swic-card-body { padding: 12px 16px; flex-direction: column; align-items: flex-start; gap: 12px; }
+    .swic-card-actions { width: 100%; justify-content: space-between; }
+}
