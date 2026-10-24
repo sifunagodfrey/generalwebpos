@@ -1,2 +1,74 @@
 .swi-wrap{color:#2b3549;min-height:50vh}.swi-narrow{max-width:780px;margin:auto}.swi-search{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e5d8f9;border-radius:10px;padding:12px;margin:0 0 18px}.swi-search>i{color:#713fce}.swi-search input{min-width:0;flex:1;background:#f6f1fc;border:0;padding:13px;border-radius:7px;outline:0;font:inherit}.swi-add,.swi-primary{background:#713fce;color:#fff!important;text-decoration:none;border:0;border-radius:9px;padding:13px 18px;display:inline-flex;gap:8px;justify-content:center;align-items:center;font-weight:600;cursor:pointer}.swi-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.swi-card{display:block;min-width:0;text-decoration:none;color:#27354a;background:#fff;border:1px solid #e4dafa;border-radius:10px;overflow:hidden}.swi-card:hover{border-color:#713fce}.swi-placeholder{height:195px;display:grid;place-items:center;background:#f5effc;color:#713fce;font-size:28px}.swi-card-body{display:grid;gap:5px;padding:12px}.swi-card-body strong{font-size:13px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.swi-card-body small{font-size:11px;color:#6c7895}.swi-card-body b{font-size:15px;color:#713fce}.swi-pagination{display:flex;justify-content:space-between;margin:18px 0;color:#677590;gap:15px}.swi-pagination a{color:#713fce;text-decoration:none;margin-left:12px}.swi-empty,.swi-detail,.swi-form{background:#fff;border:1px solid #e5d8f9;padding:18px;border-radius:10px;margin:0 0 16px}.swi-detail h3{margin:0 0 15px}.swi-back{display:inline-block;color:#713fce;margin-bottom:16px}.swi-form{display:grid;gap:15px}.swi-form label{font-size:13px;font-weight:600;display:grid;gap:7px}.swi-form input,.swi-form select,.swi-form textarea,.swi-inline-form input{border:1px solid #d9c9ef;border-radius:8px;padding:12px;background:#fff;color:#24304a;min-width:0}.swi-form-columns{display:grid;grid-template-columns:1fr 1fr;gap:15px}.swi-form label.swi-check{display:flex;align-items:center}.swi-row{display:flex;justify-content:space-between;gap:15px;border-bottom:1px solid #eee5f8;padding:13px 0;color:#303951;text-decoration:none}.swi-row:last-child{border-bottom:0}.swi-inline-form{display:flex;gap:10px}.swi-inline-form input{flex:1}.swi-success{background:#e9f8f1;color:#09744b;padding:12px;border-radius:8px;margin-bottom:14px}.swi-error{background:#fff0ed;color:#a52a2a;padding:12px;border-radius:8px}.swi-detail-image{height:160px;background:#f4effb;color:#713fce;display:grid;place-items:center;font-size:36px}.swi-kpis{display:flex;flex-wrap:wrap;gap:15px;margin:20px 0}.swi-kpis>div{flex:1;min-width:140px;padding:15px;border:1px solid #eee3fa;border-radius:9px}.swi-kpis strong{display:block;margin-top:7px;font-size:17px}
 @media(max-width:1100px){.swi-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}@media(max-width:760px){.swi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.swi-placeholder{height:170px}.swi-form-columns{grid-template-columns:1fr}.swi-add span{display:none}.swi-inline-form{flex-wrap:wrap}}
+/* --------------- */
+/* Add / edit product form (screenshots: two cards per column, underline fields) */
+/* --------------- */
+.swif-page{display:grid;gap:20px;max-width:1180px;margin:0 auto}
+.swif-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:20px;align-items:start}
+.swif-col{display:grid;gap:20px;min-width:0}
+.swif-card{background:#fff;border:1px solid #ece4f9;border-radius:12px;padding:22px 24px 24px}
+.swif-card-title{margin:0 0 20px;font-size:17px;line-height:1.25;font-weight:700;color:#2b3549}
+
+/* Photo picker */
+.swif-media-row{display:flex;align-items:center;gap:16px;margin-bottom:22px}
+.swif-media-thumb{flex:none;display:grid;place-items:center;width:64px;height:64px;border-radius:12px;background:#f4eefc;color:#713fce;font-size:26px}
+.swif-photo-btn{display:inline-flex;align-items:center;gap:9px;padding:12px 18px;border:1px solid #7d7390;border-radius:12px;background:#fff;color:#713fce;font-size:14px;cursor:pointer}
+.swif-photo-btn:hover{border-color:#713fce}
+
+/* Underline fields */
+.swif-field{display:block;margin-bottom:20px;min-width:0}
+.swif-field--last{margin-bottom:0}
+.swif-field-label{display:block;margin-bottom:2px;font-size:12.5px;line-height:1.3;color:#6c7890}
+.swif-field input,.swif-field textarea,.swif-field select{display:block;width:100%;padding:7px 0 9px;border:0;border-bottom:1px solid #c9c1d6;border-radius:0;background:transparent;outline:0;font:inherit;font-size:15px;color:#2b3549}
+.swif-field input:focus,.swif-field textarea:focus,.swif-field select:focus{border-bottom-color:#713fce}
+.swif-field textarea{resize:vertical;min-height:150px}
+.swif-field select{appearance:none;-webkit-appearance:none;padding-right:22px;cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath fill='%236f7a90' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 2px center;background-size:9px 6px}
+
+/* Two-up row (cost / selling) */
+.swif-row-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+
+/* Select line with a circled “add” button on the right */
+.swif-field-line{display:flex;align-items:flex-end;gap:10px;margin-bottom:20px}
+.swif-field-line .swif-field{flex:1;margin-bottom:0}
+.swif-field-add{flex:none;display:grid;place-items:center;width:32px;height:36px;margin-bottom:3px;color:#2b3549;font-size:21px;line-height:1;text-decoration:none}
+.swif-field-add:hover{color:#713fce}
+
+.swif-help{display:block;margin-top:7px;font-size:12.5px;line-height:1.45;color:#6c7890}
+
+/* Barcode box */
+.swif-barcode{display:flex;align-items:center;gap:14px;padding:13px 15px;border:1.6px solid #713fce;border-radius:10px}
+.swif-barcode > i{flex:none;font-size:20px;color:#2b3549}
+.swif-barcode input{flex:1;min-width:0;border:0;outline:0;background:transparent;font:inherit;font-size:15px;color:#2b3549}
+.swif-barcode input::placeholder{color:#6c7890}
+.swif-camera{display:none;border:0;background:transparent;padding:0;color:#2b3549;font-size:19px;cursor:pointer}
+
+/* Toggles */
+.swif-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:6px 0;margin-bottom:14px}
+.swif-toggle-row strong{display:block;font-size:15px;font-weight:400;color:#2b3549}
+.swif-toggle-row span{display:block;margin-top:2px;font-size:12.5px;line-height:1.45;color:#6c7890}
+.swif-switch{position:relative;flex:none;display:inline-block;width:48px;height:28px}
+.swif-switch input{position:absolute;inset:0;z-index:1;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.swif-switch-slider{position:absolute;inset:0;border-radius:999px;background:#d7d1e2;transition:background .15s}
+.swif-switch-slider::before{content:"";position:absolute;left:4px;top:4px;width:20px;height:20px;border-radius:50%;background:#5f5c68;transition:transform .15s,background .15s}
+.swif-switch input:checked + .swif-switch-slider{background:#713fce}
+.swif-switch input:checked + .swif-switch-slider::before{transform:translateX(20px);background:#fff}
+
+/* Footer actions */
+.swif-actions{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:2px}
+.swif-cancel,.swif-save{display:flex;align-items:center;justify-content:center;height:54px;border-radius:13px;font:inherit;font-size:15px;font-weight:600;text-decoration:none;cursor:pointer}
+.swif-cancel{border:1px solid #7d7390;background:#fff;color:#713fce}
+.swif-save{border:0;background:#713fce;color:#fff}
+.swif-save:disabled{opacity:.6;cursor:not-allowed}
+
+/* Tablet / phone */
+@media(max-width:960px){
+    .swif-grid{grid-template-columns:1fr}
+}
+@media(max-width:850px){
+    .swif-card{padding:20px 18px}
+    .swif-actions{gap:12px}
+    .swif-cancel,.swif-save{height:52px;font-size:14px}
+    .swif-camera{display:block}
+}

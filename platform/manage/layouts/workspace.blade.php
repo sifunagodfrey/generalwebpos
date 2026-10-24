@@ -5,6 +5,7 @@
 <link rel="icon" href="{{ asset('images/suweka-icon.png') }}">
 @vite(['resources/css/app.css','resources/js/app.js'])
 <link rel="stylesheet" href="{{ asset('css/suweka-workspace.css') }}">
+@stack('styles')
 </head>
 <body class="sw-body">
 @if(!empty($module))

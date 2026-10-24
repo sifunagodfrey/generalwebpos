@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-
+use App\Services\UploadService;
 class InventoryWorkspaceController extends Controller
 {
     private function authorizePos(Request $request, string $permission = 'pos.products.view'): void
@@ -103,6 +103,11 @@ class InventoryWorkspaceController extends Controller
             'tax_type' => ['required', Rule::in(['standard_rated', 'zero_rated', 'exempt'])],
             'description' => ['nullable', 'string', 'max:4000'],
             'is_active' => ['sometimes', 'boolean'],
+            'has_variants' => ['sometimes', 'boolean'],
+            'barcode' => ['nullable', 'string', 'max:100'],
+            'low_stock_threshold' => ['nullable', 'numeric', 'min:0'],
+            'expiry_alerts' => ['sometimes', 'boolean'],
+            'starting_stock' => ['nullable', 'numeric', 'min:0'],
         ]);
     }
 
@@ -110,10 +115,48 @@ class InventoryWorkspaceController extends Controller
     {
         $this->authorizePos($request, 'pos.products.create');
         $data = $this->validateProduct($request);
-        $data['has_variants'] = false;
+
+        $data['has_variants'] = $request->boolean('has_variants');
         $data['is_active'] = $request->boolean('is_active', true);
+
+        $barcode = trim((string) ($data['barcode'] ?? ''));
+        $startingStock = (float) ($data['starting_stock'] ?? 0);
+
+        // low_stock_threshold / expiry_alerts are accepted from the form but not
+        // persisted yet; there are no matching columns on su_products.
+        unset($data['barcode'], $data['starting_stock'], $data['low_stock_threshold'], $data['expiry_alerts']);
+
         $product = $service->create($data);
-        return redirect()->route('manage.inventory.product.show', $product->id)->with('status', 'Product created.');
+
+        if ($barcode !== '' && ! DB::table('su_barcode_labels')->where('code', $barcode)->exists()) {
+            DB::table('su_barcode_labels')->insert([
+                'code' => $barcode,
+                'product_id' => $product->id,
+                'variant_id' => null,
+                'is_assigned' => 1,
+                'created_at' => now(),
+            ]);
+        }
+
+        if ($startingStock > 0) {
+            DB::table('su_stock_batches')->insert([
+                'product_id' => $product->id,
+                'quantity' => $startingStock,
+                'received_at' => now(),
+            ]);
+        }
+
+        if ($request->hasFile('photo')) {
+            $media = app(UploadService::class)->store($request->file('photo'), 'products');
+            DB::table('su_product_images')->insert([
+                'product_id' => $product->id,
+                'file_path' => $media->file_path,
+                'is_primary' => 1,
+            ]);
+        }
+
+        return redirect()->route('manage.inventory.product.show', $product->id)
+            ->with('status', 'Product created.');
     }
 
     public function update(Request $request, int $product, ProductService $service)
@@ -121,11 +164,38 @@ class InventoryWorkspaceController extends Controller
         $this->authorizePos($request, 'pos.products.update');
         $model = \App\Models\Inventory\Product::findOrFail($product);
         $data = $this->validateProduct($request, $product);
-        $data['is_active'] = $request->boolean('is_active');
-        $service->update($model, $data);
-        return redirect()->route('manage.inventory.product.show', $product)->with('status', 'Product updated.');
-    }
 
+        $data['is_active'] = $request->boolean('is_active');
+        $data['has_variants'] = $request->boolean('has_variants');
+
+        $barcode = trim((string) ($data['barcode'] ?? ''));
+        unset($data['barcode'], $data['starting_stock'], $data['low_stock_threshold'], $data['expiry_alerts']);
+
+        $service->update($model, $data);
+
+        if ($barcode !== ''
+            && ! DB::table('su_barcode_labels')->where('code', $barcode)->exists()) {
+            DB::table('su_barcode_labels')->insert([
+                'code' => $barcode,
+                'product_id' => $product,
+                'variant_id' => null,
+                'is_assigned' => 1,
+                'created_at' => now(),
+            ]);
+        }
+
+        if ($request->hasFile('photo')) {
+            $media = app(UploadService::class)->store($request->file('photo'), 'products');
+            DB::table('su_product_images')->insert([
+                'product_id' => $product,
+                'file_path' => $media->file_path,
+                'is_primary' => 1,
+            ]);
+        }
+
+        return redirect()->route('manage.inventory.product.show', $product)
+            ->with('status', 'Product updated.');
+    }
     public function lookupsIndex(Request $request, string $type)
     {
         $this->authorizePos($request);
