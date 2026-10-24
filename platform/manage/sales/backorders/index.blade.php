@@ -13,7 +13,7 @@
   {{-- --------------- --}}
   {{-- Both tabs open the same dialog --}}
   {{-- --------------- --}}
-  <button type="button" class="sws-btn sws-primary" @click="showForm=true"><i class="fa-solid fa-plus"></i> {{ $mode==='missing' ? 'Add request' : 'Add backorder' }}</button>
+  <button type="button" class="sws-btn sws-primary w-[200px]" @click="showForm=true"><i class="fa-solid fa-plus"></i> {{ $mode==='missing' ? 'Add request' : 'Add backorder' }}</button>
  </section>
  @if(session('status'))<p class="sws-flash">{{ session('status') }}</p>@endif
  @if($mode==='missing')

@@ -78,3 +78,46 @@
 @media(min-width: 751px) {
     .sws-mobile-back { display: none; }
 }
+
+/* --------------- */
+/* New discount dialog (matches the Flutter reference) */
+/* --------------- */
+.sw-md-dialog.sw-dd{padding:28px;border-radius:28px;background:#ece6f0}
+.sw-dd h3{margin:0 0 20px;font-size:24px;font-weight:400;line-height:32px;color:#1d1b20}
+
+/* Search box */
+.sw-dd .sw-md-customer{margin:0}
+.sw-dd .sw-md-search{height:48px;gap:16px;padding:0 14px;border:0;border-radius:10px;background:#f6f0fd}
+.sw-dd .sw-md-search i{width:20px;text-align:center;font-size:17px;color:#1d1b20}
+
+/* Radios */
+.sw-dd-radios{display:grid;grid-template-columns:1fr 1fr;margin:30px 0 14px}
+.sw-dd-radios label{display:flex;align-items:center;gap:14px;font-size:16px;color:#1d1b20;cursor:pointer}
+.sw-dd-radios input{-webkit-appearance:none;appearance:none;display:grid;place-content:center;width:20px;height:20px;margin:10px;border:2px solid #49454f;border-radius:50%;background:transparent;cursor:pointer}
+.sw-dd-radios input::before{content:"";width:10px;height:10px;border-radius:50%;background:#713fce;transform:scale(0);transition:transform .12s}
+.sw-dd-radios input:checked{border-color:#713fce}
+.sw-dd-radios input:checked::before{transform:scale(1)}
+
+/* Value field: label sits inside, shrinks when focused or filled */
+.sw-dd-field{position:relative;height:52px;border-bottom:1px solid #79747e}
+.sw-dd-field input{display:block;width:100%;height:100%;padding:18px 0 0;border:0;border-radius:0;background:transparent;outline:0;font:inherit;font-size:16px;color:#1d1b20}
+.sw-dd-field label{position:absolute;left:0;top:50%;transform:translateY(-50%);font-size:16px;color:#49454f;pointer-events:none;transition:all .12s}
+.sw-dd-field input:focus + label,.sw-dd-field input:not(:placeholder-shown) + label{top:8px;transform:none;font-size:12px}
+.sw-dd-field:focus-within{border-bottom:2px solid #713fce}
+.sw-dd-field:focus-within label{color:#713fce}
+
+/* Dates */
+.sw-dd-dates{margin-top:12px}
+.sw-dd-date{position:relative;display:flex;align-items:center;justify-content:space-between;height:38px;font-size:16px;color:#1d1b20}
+.sw-dd-date button{height:100%;padding:0 14px;border:0;background:transparent;font:inherit;font-weight:500;color:#713fce;cursor:pointer}
+.sw-dd-date input[type=date]{position:absolute;right:0;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none}
+
+/* Buttons */
+.sw-dd .sw-md-actions{margin-top:28px;gap:8px}
+.sw-dd .sw-md-cancel{padding:10px 16px}
+.sw-dd .sw-md-save{height:40px;padding:0 22px;border-radius:14px}
+
+@media(max-width:850px){
+  .sw-dd-radios label{gap:4px}
+  .sw-dd-radios input{margin:8px}
+}
