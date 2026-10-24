@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Carbon;
 
 class WorkspaceController extends Controller
 {
@@ -22,9 +21,7 @@ class WorkspaceController extends Controller
         $yesterday = today()->subDay();
         $last7Days = collect(range(6, 0))->map(fn($i) => today()->subDays($i));
 
-        // ---------------
         // 1. Top Metrics
-        // ---------------
         $todaySales = $hasSales ? (float) DB::table('su_sales')->where('status', 'completed')->whereDate('completed_at', $today)->sum('total') : 0;
         $yesterdaySales = $hasSales ? (float) DB::table('su_sales')->where('status', 'completed')->whereDate('completed_at', $yesterday)->sum('total') : 0;
         $salesChange = $yesterdaySales > 0 ? (($todaySales - $yesterdaySales) / $yesterdaySales) * 100 : ($todaySales > 0 ? 100 : 0);
@@ -42,9 +39,7 @@ class WorkspaceController extends Controller
         $owingCount = Schema::hasTable('su_customers') ? DB::table('su_customers')->where('credit_balance', '>', 0)->count() : 0;
         $owingTotal = Schema::hasTable('su_customers') ? (float) DB::table('su_customers')->sum('credit_balance') : 0;
 
-        // ---------------
         // 2. Sales Trend (Last 7 days)
-        // ---------------
         $trendData = [];
         $trendLabels = [];
         foreach ($last7Days as $date) {
@@ -56,9 +51,7 @@ class WorkspaceController extends Controller
         $trendAvg = count($trendData) > 0 ? $trendTotal / count($trendData) : 0;
         $trendBest = max($trendData ?: [0]);
 
-        // ---------------
         // 3. Payment Mix (Last 7 days)
-        // ---------------
         $paymentMix = collect();
         $paymentTotal = 0;
         if ($hasSales && Schema::hasTable('su_payment_methods')) {
@@ -72,9 +65,7 @@ class WorkspaceController extends Controller
             $paymentTotal = $paymentMix->sum('total');
         }
 
-        // ---------------
         // 4. Popular Products (Last 7 days)
-        // ---------------
         $popularProducts = collect();
         if ($hasSales && Schema::hasTable('su_sale_items')) {
             $popularProducts = DB::table('su_sale_items as i')
@@ -89,9 +80,7 @@ class WorkspaceController extends Controller
                 ->get();
         }
 
-        // ---------------
         // 5. Needs Attention (Top owing customers)
-        // ---------------
         $needsAttention = collect();
         if (Schema::hasTable('su_customers')) {
             $needsAttention = DB::table('su_customers')
@@ -101,9 +90,6 @@ class WorkspaceController extends Controller
                 ->get(['id', 'first_name', 'last_name', 'credit_balance']);
         }
 
-        // ---------------
-        // 6. Layout Context (Required for the sidebar to render)
-        // ---------------
         $modules = config('suweka_ui');
         $module = 'dashboard';
         $page = 'index';
@@ -118,15 +104,82 @@ class WorkspaceController extends Controller
         ));
     }
 
+    public function salesTrends()
+    {
+        $hasSales = Schema::hasTable('su_sales');
+        $last7Days = collect(range(6, 0))->map(fn($i) => today()->subDays($i));
+
+        // 1. Sales Trend (Last 7 days)
+        $trendData = [];
+        $trendLabels = [];
+        $byDay = [];
+        foreach ($last7Days as $date) {
+            $val = $hasSales ? (float) DB::table('su_sales')->where('status', 'completed')->whereDate('completed_at', $date)->sum('total') : 0;
+            $trendData[] = $val;
+            $trendLabels[] = $date->format('d/m');
+            $byDay[] = [
+                'date' => $date->format('d/m/Y'),
+                'total' => $val
+            ];
+        }
+        $trendTotal = array_sum($trendData);
+        $trendAvg = count($trendData) > 0 ? $trendTotal / count($trendData) : 0;
+        $trendBest = max($trendData ?: [0]);
+
+        // 2. Payment Mix (Last 7 days)
+        $paymentMix = collect();
+        $paymentTotal = 0;
+        if ($hasSales && Schema::hasTable('su_payment_methods')) {
+            $paymentMix = DB::table('su_payment_methods as pm')
+                ->join('su_sales as s', 's.id', '=', 'pm.sale_id')
+                ->where('s.status', 'completed')
+                ->whereBetween('s.completed_at', [today()->subDays(6)->startOfDay(), today()->endOfDay()])
+                ->select('pm.method', DB::raw('SUM(pm.amount) as total'))
+                ->groupBy('pm.method')
+                ->get();
+            $paymentTotal = $paymentMix->sum('total');
+        }
+
+        // 3. Popular Products (Last 7 days)
+        $popularProducts = collect();
+        if ($hasSales && Schema::hasTable('su_sale_items')) {
+            $popularProducts = DB::table('su_sale_items as i')
+                ->join('su_sales as s', 's.id', '=', 'i.sale_id')
+                ->join('su_products as p', 'p.id', '=', 'i.product_id')
+                ->where('s.status', 'completed')
+                ->whereBetween('s.completed_at', [today()->subDays(6)->startOfDay(), today()->endOfDay()])
+                ->select('p.name', DB::raw('SUM(i.quantity) as units_sold'), DB::raw('SUM(i.line_total) as revenue'))
+                ->groupBy('p.id', 'p.name')
+                ->orderByDesc('revenue')
+                ->limit(5)
+                ->get();
+        }
+
+        $modules = config('suweka_ui');
+        $module = 'dashboard';
+        $page = 'sales-trends';
+        $item = collect($modules[$module]['items'] ?? [])->first(fn($i) => $i[0] === $page) ?? ['sales-trends', 'Sales Trends', 'chart-line'];
+
+        return view('manage.dashboard.sales-trends', compact(
+            'trendLabels', 'trendData', 'trendTotal', 'trendAvg', 'trendBest',
+            'paymentMix', 'paymentTotal', 'popularProducts', 'byDay',
+            'modules', 'module', 'page', 'item'
+        ));
+    }
+
     public function show(Request $request, string $page='index') 
     {
         $module = explode('.', (string)$request->route()->getName())[2] ?? ''; 
         
-        // ---------------
-        // Intercept the dashboard route and return the proper view
-        // ---------------
+        // Intercept the dashboard routes
         if ($module === 'dashboard') {
-            return $this->home();
+            if ($page === 'index' || $page === null) {
+                return $this->home();
+            }
+            // UPDATE THIS LINE to accept 'trends' as well
+            if (in_array($page, ['sales-trends', 'trends'], true)) {
+                return $this->salesTrends();
+            }
         }
 
         $modules = config('suweka_ui');
@@ -139,7 +192,6 @@ class WorkspaceController extends Controller
         $stats = []; 
         $plot = [];
         
-        // Query in MySQL before pagination, not only among the first loaded cards.
         $search = trim((string)$request->query('q', ''));
         $search = mb_substr($search, 0, 120);
         
