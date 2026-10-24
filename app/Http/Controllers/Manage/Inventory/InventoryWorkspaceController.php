@@ -33,12 +33,40 @@ class InventoryWorkspaceController extends Controller
             'categories' => $this->categoriesIndex($request),
             'brands' => $this->brandsIndex($request),
             'alerts' => $this->alerts($request),
-            'stocktake' => $this->stocktake($request), // <-- Add this
-            'backorders', 'reports' => $this->other($request, $page),
+            'stocktake' => $this->stocktake($request),
+            'backorders' => $this->backorders($request), 
+            'reports' => $this->other($request, $page),
             default => abort(404),
         };
     }
 
+    public function backorders(Request $request)
+    {
+        $this->authorizePos($request);
+        
+        $mode = $request->query('tab') === 'missing' ? 'missing' : 'backorders';
+        $search = mb_substr(trim((string) $request->query('q', '')), 0, 100);
+
+        if ($mode === 'missing') {
+            $records = DB::table('su_missing_stock_requests as r')
+                ->leftJoin('su_products as p', 'r.product_id', '=', 'p.id')
+                ->select('r.*', 'p.name as catalog_name')
+                ->when($search, fn ($q) => $q->where('r.product_name', 'like', '%'.$search.'%'))
+                ->orderByDesc('r.id')->paginate(20)->withQueryString();
+        } else {
+            $records = DB::table('su_backorders as b')
+                ->join('su_sale_items as i', 'i.id', '=', 'b.sale_item_id')
+                ->leftJoin('su_products as p', 'p.id', '=', 'i.product_id')
+                ->select('b.*', 'i.sale_id', 'i.product_id', 'p.name as product_name')
+                ->when($search, fn ($q) => $q->where('p.name', 'like', '%'.$search.'%'))
+                ->orderByDesc('b.id')->paginate(20)->withQueryString();
+        }
+
+        $customers = DB::table('su_customers')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'phone']);
+
+        // This renders the Sales view, but $this->view() forces the layout to stay in Inventory
+        return $this->view($request, 'backorders', 'manage.sales.backorders.index', compact('records', 'search', 'mode', 'customers'));
+    }
     public function stocktake(Request $request)
     {
         $this->authorizePos($request);
