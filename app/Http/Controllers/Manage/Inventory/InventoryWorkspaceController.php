@@ -28,14 +28,112 @@ class InventoryWorkspaceController extends Controller
     {
         $this->authorizePos($request);
         return match ($page) {
-            'products'   => $this->products($request),
-            'create'     => $this->create($request),
+            'products' => $this->products($request),
+            'create' => $this->create($request),
             'categories' => $this->categoriesIndex($request),
-            'brands'     => $this->brandsIndex($request),   // <-- was $this->lookupsIndex($request, $page)
-            'alerts'     => $this->alerts($request),
-            'stocktake', 'backorders', 'reports' => $this->other($request, $page),
-            default      => abort(404),
+            'brands' => $this->brandsIndex($request),
+            'alerts' => $this->alerts($request),
+            'stocktake' => $this->stocktake($request), // <-- Add this
+            'backorders', 'reports' => $this->other($request, $page),
+            default => abort(404),
         };
+    }
+
+    public function stocktake(Request $request)
+    {
+        $this->authorizePos($request);
+        $search = mb_substr(trim((string) $request->query('q', '')), 0, 120);
+        
+        $query = DB::table('su_products as p')
+            ->leftJoin('su_stock_batches as b', 'b.product_id', '=', 'p.id')
+            ->select('p.id', 'p.name', 'p.selling_price', 'p.has_variants', 'p.is_active')
+            ->selectRaw('COALESCE(SUM(CASE WHEN b.expiry_date IS NULL OR b.expiry_date >= CURRENT_DATE THEN b.quantity ELSE 0 END),0) AS stock')
+            ->where('p.is_active', 1)
+            ->groupBy('p.id', 'p.name', 'p.selling_price', 'p.has_variants', 'p.is_active');
+            
+        if ($search !== '') {
+            $query->where('p.name', 'like', '%' . addcslashes($search, '%_\\') . '%');
+        }
+        
+        $products = $query->orderBy('p.name')->paginate(20)->withQueryString();
+        
+        // Update the view path to match your folder structure
+        return $this->view($request, 'stocktake', 'manage.inventory.stocktake.index', compact('products', 'search'));
+    }
+
+    public function storeStocktake(Request $request)
+    {
+        $this->authorizePos($request, 'pos.products.update');
+        
+        $data = $request->validate([
+            'product_id' => 'required|integer|exists:su_products,id',
+            'counted_quantity' => 'required|numeric|min:0',
+            'note' => 'nullable|string|max:1500',
+        ]);
+
+        $staffId = DB::table('su_staff')->where('user_id', $request->user()->id)->value('id');
+
+        DB::transaction(function () use ($data, $staffId) {
+            // Calculate current stock
+            $currentStock = DB::table('su_stock_batches')
+                ->where('product_id', $data['product_id'])
+                ->where(function($q) {
+                    $q->whereNull('expiry_date')->orWhereDate('expiry_date', '>=', today());
+                })
+                ->sum('quantity');
+                
+            $discrepancy = $data['counted_quantity'] - $currentStock;
+
+            // 1. Record adjustment
+            DB::table('su_stock_adjustments')->insert([
+                'product_id' => $data['product_id'],
+                'recorded_quantity' => $currentStock,
+                'counted_quantity' => $data['counted_quantity'],
+                'discrepancy' => $discrepancy,
+                'staff_id' => $staffId,
+                'note' => $data['note'] ?? 'Stock take',
+                'created_at' => now(),
+            ]);
+
+            // 2. Adjust batches (add or remove)
+            if ($discrepancy > 0) {
+                DB::table('su_stock_batches')->insert([
+                    'product_id' => $data['product_id'],
+                    'quantity' => $discrepancy,
+                    'received_at' => now(),
+                ]);
+            } elseif ($discrepancy < 0) {
+                $toRemove = abs($discrepancy);
+                $batches = DB::table('su_stock_batches')
+                    ->where('product_id', $data['product_id'])
+                    ->where('quantity', '>', 0)
+                    ->orderBy('expiry_date', 'asc')
+                    ->get();
+                    
+                foreach ($batches as $batch) {
+                    if ($toRemove <= 0) break;
+                    $take = min($toRemove, $batch->quantity);
+                    DB::table('su_stock_batches')->where('id', $batch->id)->decrement('quantity', $take);
+                    $toRemove -= $take;
+                }
+            }
+
+            // 3. Stock movement
+            if ($staffId) {
+                DB::table('su_stock_movements')->insert([
+                    'product_id' => $data['product_id'],
+                    'staff_id' => $staffId,
+                    'movement_type' => 'adjustment',
+                    'quantity_delta' => $discrepancy,
+                    'source_type' => 'stock_take',
+                    'source_id' => $data['product_id'],
+                    'note' => $data['note'],
+                    'created_at' => now(),
+                ]);
+            }
+        });
+
+        return response()->json(['ok' => true, 'message' => 'Count recorded successfully.']);
     }
 
     private function view(Request $request, string $page, string $template, array $values = [])

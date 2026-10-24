@@ -26,3 +26,6 @@ Route::post('/inventory/brands', [Inventory::class, 'storeBrand'])->name('manage
 Route::get('/inventory/brands/{brand}/edit', [Inventory::class, 'editBrand'])->name('manage.inventory.brands.edit');
 Route::put('/inventory/brands/{brand}', [Inventory::class, 'updateBrand'])->name('manage.inventory.brands.update');
 Route::delete('/inventory/brands/{brand}', [Inventory::class, 'destroyBrand'])->name('manage.inventory.brands.destroy');
+
+Route::post('/inventory/stocktake', [Inventory::class, 'storeStocktake'])->name('manage.inventory.stocktake.store');
+Route::get('/inventory/{page?}', [Inventory::class, 'section'])->name('manage.workspace.inventory');
