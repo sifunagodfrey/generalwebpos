@@ -30,6 +30,18 @@ return [
             ['credit-notes', 'Credit Notes',     'file-shield'],
         ],
     ],
- 'reports'=>['label'=>'Reports','icon'=>'chart-simple','desc'=>'Sales and shift reports','action'=>'View Reports','items'=>[['index','Overview','table-cells-large'],['sales','Sales','chart-column'],['profit','Profit & Loss','arrow-trend-up'],['vat','VAT','file-invoice-dollar'],['products','Products','box-archive'],['staff','Staff','id-card-clip'],['shifts','Shifts','piggy-bank']]],
- 'settings'=>['label'=>'Settings','icon'=>'gear','desc'=>'Shop and system settings','action'=>'Open Settings','items'=>[['network','Store Network','network-wired'],['vat','VAT','file-invoice-dollar'],['alerts','Alerts','bell'],['hardware','Hardware','print'],['mpesa','M-Pesa','mobile-screen'],['users','Users','id-card-clip'],['branding','Branding','store'],['backup','Backup','cloud-arrow-up'],['sample','Sample data','table-cells-large'],['documents','Documents','file-lines']]],
+    'reports' => [
+        'label' => 'Reports',
+        'icon'  => 'fa-chart-simple',
+        'items' => [
+            ['index',       'Overview',       'table-cells-large'],
+            ['sales',       'Sales',          'chart-column'],
+            ['profit-loss', 'Profit & Loss',  'arrow-trend-up'],
+            ['vat',         'VAT',            'file-invoice'],
+            ['products',    'Products',       'box-archive'],
+            ['staff',       'Staff',          'id-badge'],
+            ['shifts',      'Shifts',         'piggy-bank'],
+        ],
+    ],
+    'settings'=>['label'=>'Settings','icon'=>'gear','desc'=>'Shop and system settings','action'=>'Open Settings','items'=>[['network','Store Network','network-wired'],['vat','VAT','file-invoice-dollar'],['alerts','Alerts','bell'],['hardware','Hardware','print'],['mpesa','M-Pesa','mobile-screen'],['users','Users','id-card-clip'],['branding','Branding','store'],['backup','Backup','cloud-arrow-up'],['sample','Sample data','table-cells-large'],['documents','Documents','file-lines']]],
 ];
