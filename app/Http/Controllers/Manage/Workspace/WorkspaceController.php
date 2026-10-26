@@ -167,22 +167,6 @@ class WorkspaceController extends Controller
         ));
     }
 
-    // ---------------
-    // Main menu: module cards, no active module so the layout renders in home mode
-    // ---------------
-    public function menu()
-    {
-        $modules = config('suweka_ui');
-        $counts = [
-            'inventory' => $this->safeCount('su_products'),
-            'customers' => $this->safeCount('su_customers'),
-            'suppliers' => $this->safeCount('su_suppliers'),
-            'staff'     => $this->safeCount('su_staff'),
-        ];
-
-        return view('manage.workspace.home', compact('modules', 'counts'));
-    }
-
     public function show(Request $request, string $page='index') 
     {
         $module = explode('.', (string)$request->route()->getName())[2] ?? ''; 
@@ -200,6 +184,24 @@ class WorkspaceController extends Controller
             }
             if (in_array($page, ['customers-owing', 'owing', 'ledger'], true)) {
                 return $this->customersOwing($request);
+            }
+        }
+
+        // Intercept Staff routes to prevent the generic workspace view from rendering
+        // and redirect to the actual SystemUsersController which has the real forms.
+        if ($module === 'staff') {
+            if (in_array($page, ['create', 'add'], true)) {
+                return redirect()->route('manage.system-users.create');
+            }
+            if ($page === 'index') {
+                return redirect()->route('manage.system-users.index');
+            }
+            // Handle clicking on a specific staff member (e.g. /workspace/staff/5)
+            if (is_numeric($page)) {
+                if ($request->has('edit')) {
+                    return redirect()->route('manage.system-users.edit', $page);
+                }
+                return redirect()->route('manage.system-users.show', $page);
             }
         }
 
@@ -267,10 +269,10 @@ class WorkspaceController extends Controller
             if(Schema::hasTable('su_stock_batches') && Schema::hasColumn('su_stock_batches','quantity_remaining')) $stats['low_stock']=DB::table('su_stock_batches')->where('quantity_remaining','<=',5)->count();
         }
         
-        return view('manage.workspace.page',compact('modules','module','page','item','records','stats','plot'));
+        return view('manage.workspace.page',compact('modules','module','page','item','records','stats','plot','search'));
     }
 
-        public function stockAlerts(Request $request)
+    public function stockAlerts(Request $request)
     {
         // 1. Fetch data (copied from InventoryWorkspaceController)
         $lowStockCount = DB::table('su_products as p')
@@ -343,14 +345,14 @@ class WorkspaceController extends Controller
 
         // 2. Force the layout to stay on Dashboard
         $modules = config('suweka_ui');
-        $page = 'stock-alerts'; // Ensure this matches the slug in your config/suweka_ui.php
+        $page = 'stock-alerts'; 
         $item = collect($modules['dashboard']['items'] ?? [])->first(fn ($i) => $i[0] === $page) ?? [$page, 'Stock Alerts', 'exclamation-triangle'];
 
         return view('manage.inventory.alerts', compact(
             'records', 'search', 'tab', 'lowStockCount', 'outOfStockCount', 'expiresSoonCount', 'expiredCount', 'allCount'
         ) + [
             'modules' => $modules,
-            'module' => 'dashboard', // Keeps the sidebar in the Dashboard module!
+            'module' => 'dashboard', 
             'page' => $page,
             'item' => $item,
             'alertsCount' => $allCount
@@ -392,12 +394,12 @@ class WorkspaceController extends Controller
 
         // 2. Force the layout to stay on Dashboard
         $modules = config('suweka_ui');
-        $page = 'customers-owing'; // Ensure this matches the slug in your config/suweka_ui.php
+        $page = 'customers-owing'; 
         $item = collect($modules['dashboard']['items'] ?? [])->first(fn ($i) => $i[0] === $page) ?? [$page, 'Customers Owing', 'wallet'];
 
         return view('manage.customers.ledger', [
             'modules'    => $modules,
-            'module'     => 'dashboard', // Keeps the sidebar in the Dashboard module!
+            'module'     => 'dashboard', 
             'page'       => $page,
             'item'       => $item,
             'records'    => $records,
