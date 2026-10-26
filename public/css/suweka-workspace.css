@@ -395,3 +395,84 @@ a.sw-person-row:hover{background:#ece6f8}
         font-size: 13px;
     }
 }
+
+/* --------------- */
+/* Main menu card colours */
+/* --------------- */
+.sw-c-purple{--c:#754aff;--bg:#eee8ff}
+.sw-c-blue{--c:#2f83ed;--bg:#e6efff}
+.sw-c-pink{--c:#e6387f;--bg:#fce7f1}
+.sw-c-green{--c:#0db47a;--bg:#e3f6ef}
+.sw-c-orange{--c:#f69322;--bg:#fff0df}
+.sw-c-teal{--c:#08a8a7;--bg:#e0f5f4}
+.sw-c-slate{--c:#6b7d9a;--bg:#edf0f5}
+.sw-home-card .sw-card-action{color:var(--c)!important}
+.sw-home-card .sw-card-arrow{color:var(--c);background:var(--bg)}
+
+/* --------------- */
+/* Supplier dialog (add / edit / record payment) */
+/* --------------- */
+.sw-md-dialog.sw-sup{width:min(420px,100%);padding:28px 36px 24px;border-radius:28px;background:#ece6f0}
+.sw-sup h3{margin:0 0 14px;font-size:28px;font-weight:400;line-height:1.25;color:#1d1b20}
+.sw-sup-field{position:relative;height:60px;border-bottom:1px solid #79747e}
+.sw-sup-field input,.sw-sup-field textarea{display:block;width:100%;height:100%;padding:22px 0 0;border:0;border-radius:0;background:transparent;outline:0;resize:none;font:inherit;font-size:16px;color:#1d1b20}
+.sw-sup-field label{position:absolute;left:0;top:50%;transform:translateY(-50%);font-size:16px;color:#49454f;pointer-events:none;transition:all .12s}
+.sw-sup-field input:focus+label,.sw-sup-field input:not(:placeholder-shown)+label,.sw-sup-field textarea:focus+label,.sw-sup-field textarea:not(:placeholder-shown)+label{top:6px;transform:none;font-size:12px}
+.sw-sup-field:focus-within{border-bottom:2px solid #713fce}
+.sw-sup-field:focus-within label{color:#713fce}
+.sw-sup-field--multi{height:92px}
+.sw-sup-field--multi label{top:30px;transform:none}
+.sw-sup .sw-md-note{margin:10px 0 4px}
+.sw-sup .sw-md-actions{margin-top:26px}
+.sw-sup .sw-md-save{height:48px;padding:0 28px;border-radius:24px;font-size:16px}
+.sw-sup .sw-md-cancel{padding:10px 16px;font-size:16px;font-weight:500}
+@media(max-width:850px){.sw-md-dialog.sw-sup{padding:24px 28px 20px}}
+
+/* --------------- */
+/* Supplier details */
+/* --------------- */
+.sw-topbar-actions{margin-left:auto;margin-right:6px;display:flex;align-items:center;gap:6px}
+.sws{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+.sws-col{display:grid;gap:24px;min-width:0}
+.sws-card{background:#fff;border:1px solid #e4dafa;border-radius:12px;padding:22px 24px}
+.sws-card h2,.sws-card h3{margin:0;font-size:16px;font-weight:700;color:#2d384c}
+.sws-card h4{margin:22px 0 8px;font-size:14px;font-weight:700;color:#2d384c}
+.sws-sub{margin:4px 0 0;font-size:12px;color:#697c9a}
+.sws-empty{margin:18px 0 0;font-size:16px;color:#697c9a}
+.sws-row{display:flex;gap:28px;margin-top:22px;font-size:16px}
+.sws-row span{min-width:56px;color:#697c9a}
+.sws-row b{font-weight:400;color:#2d384c;word-break:break-word}
+.sws-money{margin:18px 0 12px;font-size:26px;font-weight:700;color:#2d384c}
+.sws-line{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:12px 0 0;margin-top:12px;border-top:1px solid #f0eaff;font-size:15px;color:#2d384c}
+.sws-line small{display:block;margin-top:3px;font-size:12px;color:#697c9a}
+.sws-end{text-align:right}
+.sws-entry{display:flex;align-items:center;gap:16px;padding:10px 0;color:#2d384c}
+.sws-entry i{width:22px;text-align:center;font-size:18px}
+.sws-entry span{flex:1;font-size:15px}
+.sws-entry small{display:block;font-size:12px;color:#697c9a}
+.sws-entry b{font-size:14px;font-weight:400}
+.sws-entry .is-out{color:#e34b4b}
+.sws-entry .is-in{color:#0a9a62}
+.sws-flash{margin:0 0 14px;padding:12px 14px;border-radius:10px;background:#e0f5e9;color:#137c40;font-size:14px}
+.sws-flash--error{background:#fff0ed;color:#b23135}
+.sws-btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:48px;padding:0 24px;border-radius:24px;font:inherit;font-size:16px;font-weight:500;text-decoration:none;cursor:pointer}
+.sws-btn--primary{border:0;background:#713fce;color:#fff}
+.sws-btn--outline{border:1px solid #79747e;background:#fff;color:#713fce}
+.sws-btn--block{width:100%;height:48px}
+.sws-mobile-actions{display:none}
+
+/* --------------- */
+/* Supplier details on mobile: one column, actions under the first card */
+/* --------------- */
+@media(max-width:850px){
+  .sws{grid-template-columns:1fr;gap:16px}
+  .sws-col{gap:16px}
+  .sws-mobile-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .sws-mobile-actions .sws-btn{height:46px;padding:0 12px;font-size:16px}
+}
+
+/* --------------- */
+/* Supplier fields: neutralise base form styles */
+/* --------------- */
+.sw-sup-field input,.sw-sup-field textarea{box-shadow:none;margin:0;-webkit-appearance:none;appearance:none}
+.sw-sup-field label{font-weight:400;background:transparent;margin:0;padding:0}

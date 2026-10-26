@@ -12,7 +12,7 @@ $root = fn () => Auth::check()
 
 $domain = config('app.admin_domain');
 $routes = static function () use ($dashboard): void {
-    Route::get('/dashboard', [\App\Http\Controllers\Manage\Workspace\WorkspaceController::class, 'home'])->name('manage.dashboard.index');
+    Route::get('/dashboard', [\App\Http\Controllers\Manage\Workspace\WorkspaceController::class, 'menu'])->name('manage.dashboard.index');
     Route::prefix('workspace')->group(base_path('routes/manage/workspace.php'));
     Route::get('/workspace/license/activate', [\App\Http\Controllers\Manage\Settings\Licensing\PosLicenseController::class, 'show'])->name('manage.license.show');
     Route::post('/workspace/license/activate', [\App\Http\Controllers\Manage\Settings\Licensing\PosLicenseController::class, 'activate'])->name('manage.license.activate');
