@@ -2,7 +2,7 @@
 @php
     $name = trim($supplier->first_name . ' ' . ($supplier->last_name ?? ''));
     $paymentTypes = ['payment', 'repayment'];
-    $ordersUrl = route('manage.workspace.suppliers', ['page' => 'orders', 'supplier' => $supplier->id]);
+    $ordersUrl = route('manage.suppliers.orders.create', ['supplier' => $supplier->id]);
 @endphp
 @section('title', $name)
 @section('heading', $name)
@@ -40,11 +40,10 @@
             @endcan_do
             <a class="sws-btn sws-btn--primary" href="{{ $ordersUrl }}"><i class="fa-solid fa-cart-plus"></i> Place order</a>
         </div>
-
         <section class="sws-card">
             <h3>Products from this supplier</h3>
             @forelse($products as $product)
-                <div class="sws-line"><span>{{ $product->name }}</span><small>Ordered {{ rtrim(rtrim(number_format((float) $product->ordered, 2), '0'), '.') }} &bull; Received {{ rtrim(rtrim(number_format((float) $product->received, 2), '0'), '.') }}</small></div>
+                <div class="sws-item"><span class="sws-item-main"><b>{{ $product->name }}</b><small>Last cost {{ rtrim(rtrim(number_format((float) $product->cost, 2, '.', ''), '0'), '.') }}</small></span></div>
             @empty
                 <p class="sws-empty">Nothing ordered from this supplier yet.</p>
             @endforelse
@@ -53,10 +52,11 @@
         <section class="sws-card">
             <h3>Order history</h3>
             @forelse($orders as $order)
-                <div class="sws-line">
-                    <span>Order #{{ $order->id }}<small>{{ \Illuminate\Support\Carbon::parse($order->created_at)->format('d/m/Y') }} &bull; {{ $order->item_count }} {{ \Illuminate\Support\Str::plural('item', $order->item_count) }}</small></span>
-                    <span class="sws-end">{{ number_format((float) $order->total, 0) }}<small>{{ ucfirst(str_replace('_', ' ', (string) $order->status)) }}</small></span>
-                </div>
+                @php $orderDone = $order->received_at !== null || strtolower((string) $order->status) === 'received'; @endphp
+                <a class="sws-item" href="{{ route('manage.suppliers.orders.show', $order->id) }}">
+                    <i class="{{ $orderDone ? 'fa-solid fa-circle-check is-ok' : 'fa-regular fa-clock' }}" aria-hidden="true"></i>
+                    <span class="sws-item-main"><b>Order #{{ $order->id }}</b><small>{{ $orderDone ? 'Received' : 'Pending' }}</small></span>
+                </a>
             @empty
                 <p class="sws-empty">No orders placed with this supplier yet.</p>
             @endforelse
@@ -68,10 +68,10 @@
             <h3>Pending requests</h3>
             <p class="sws-sub">Orders waiting on supply</p>
             @forelse($pending as $order)
-                <div class="sws-line">
-                    <span>Order #{{ $order->id }}<small>{{ \Illuminate\Support\Carbon::parse($order->created_at)->format('d/m/Y') }}</small></span>
-                    <span class="sws-end">{{ number_format((float) $order->total, 0) }}<small>{{ ucfirst(str_replace('_', ' ', (string) $order->status)) }}</small></span>
-                </div>
+                <a class="sws-item" href="{{ route('manage.suppliers.orders.show', $order->id) }}">
+                    <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                    <span class="sws-item-main"><b>Order #{{ $order->id }}</b><small>Pending</small></span>
+                </a>
             @empty
                 <p class="sws-empty">Nothing pending right now.</p>
             @endforelse

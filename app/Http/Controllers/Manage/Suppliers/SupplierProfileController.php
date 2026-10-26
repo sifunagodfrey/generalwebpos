@@ -41,10 +41,11 @@ class SupplierProfileController extends Controller
             ->join('su_purchase_orders as o', 'o.id', '=', 'i.purchase_order_id')
             ->join('su_products as p', 'p.id', '=', 'i.product_id')
             ->where('o.supplier_id', $supplier)
-            ->groupBy('p.id', 'p.name')->orderBy('p.name')->limit(50)
-            ->get(['p.id', 'p.name',
-                DB::raw('SUM(i.quantity_ordered) as ordered'),
-                DB::raw('SUM(i.quantity_received) as received')]);
+            ->orderBy('i.id')
+            ->get(['p.id', 'p.name', 'i.unit_cost'])
+            ->groupBy('id')
+            ->map(fn ($rows) => (object) ['id' => $rows->first()->id, 'name' => $rows->first()->name, 'cost' => $rows->last()->unit_cost])
+            ->values()->take(50);
 
         $ledger = DB::table('su_supplier_transactions')
             ->where('supplier_id', $supplier)

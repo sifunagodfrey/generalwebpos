@@ -170,7 +170,7 @@ class WorkspaceController extends Controller
     // ---------------
     // Main menu: module cards, no active module so the layout renders in home mode
     // ---------------
-    public function menu()DB::raw('COUNT(i.product_id) as item_count'),
+    public function menu()
     {
         $modules = config('suweka_ui');
         $counts = [
