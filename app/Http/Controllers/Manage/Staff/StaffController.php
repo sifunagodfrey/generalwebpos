@@ -186,4 +186,85 @@ class StaffController extends Controller
 
         return back()->with('status', 'Leave logged successfully.');
     }
+
+    private function getPerformanceMetrics()
+    {
+        $startOfMonth = now()->startOfMonth();
+        $endOfMonth = now()->endOfMonth();
+
+        $topPerformerData = Sale::where('status', 'completed')
+            ->whereBetween('completed_at', [$startOfMonth, $endOfMonth])
+            ->select('staff_id', DB::raw('SUM(total) as revenue'))
+            ->groupBy('staff_id')
+            ->orderByDesc('revenue')
+            ->with('staff')
+            ->first();
+
+        $staffWithSales = Sale::where('status', 'completed')
+            ->whereBetween('completed_at', [$startOfMonth, $endOfMonth])
+            ->distinct('staff_id')
+            ->count('staff_id');
+
+        $leaderboard = Sale::where('status', 'completed')
+            ->whereBetween('completed_at', [$startOfMonth, $endOfMonth])
+            ->select('staff_id', DB::raw('SUM(total) as revenue'), DB::raw('COUNT(id) as sales_count'))
+            ->groupBy('staff_id')
+            ->orderByDesc('revenue')
+            ->with('staff')
+            ->take(10)
+            ->get();
+
+        return [
+            'topPerformer' => $topPerformerData ? $topPerformerData->staff : null,
+            'topRevenue' => $topPerformerData ? (float) $topPerformerData->revenue : 0,
+            'staffWithSales' => $staffWithSales,
+            'leaderboard' => $leaderboard,
+        ];
+    }
+
+    public function performance()
+    {
+        $metrics = $this->getPerformanceMetrics();
+        return view('manage.staff.performance', $this->layout('performance', $metrics));
+    }
+
+    public function leave()
+    {
+        $staff = Staff::where('is_active', 1)->orderBy('first_name')->get();
+        
+        // Assuming you have a StaffLeave model relationship
+        $leaves = \App\Models\Staff\StaffLeave::with(['staff', 'loggedByStaff'])
+            ->latest('start_date')
+            ->paginate(20);
+
+        return view('manage.staff.leave', $this->layout('leave', compact('staff', 'leaves')));
+    }
+
+    public function storeLeave(Request $request)
+    {
+        $data = $request->validate([
+            'staff_id' => 'required|exists:su_staff,id',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'reason' => 'nullable|string|max:255',
+        ]);
+
+        $loggedBy = Staff::where('user_id', $request->user()->id)->value('id');
+
+        StaffLeave::create([
+            'staff_id' => $data['staff_id'],
+            'start_date' => $data['start_date'],
+            'end_date' => $data['end_date'],
+            'reason' => $data['reason'],
+            'logged_by_staff_id' => $loggedBy,
+        ]);
+
+        return back()->with('status', 'Leave logged successfully.');
+    }
+    public function reports()
+    {
+        $metrics = $this->getPerformanceMetrics();
+        
+        return view('manage.staff.reports', $this->layout('reports', $metrics));
+    }
 }

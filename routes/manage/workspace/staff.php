@@ -8,6 +8,13 @@ use App\Http\Controllers\Manage\Staff\StaffController;
 Route::get('/staff/index', [StaffController::class, 'index'])->name('manage.staff.index');
 Route::get('/staff', [StaffController::class, 'index']); 
 
+Route::get('/staff/index', [StaffController::class, 'index'])->name('manage.staff.index');
+Route::get('/staff', [StaffController::class, 'index']); 
+
+Route::get('/staff/performance', [StaffController::class, 'performance'])->name('manage.staff.performance');
+Route::get('/staff/leave', [StaffController::class, 'leave'])->name('manage.staff.leave');
+Route::post('/staff/leave', [StaffController::class, 'storeLeave'])->name('manage.staff.store-leave');
+Route::get('/staff/reports', [StaffController::class, 'reports'])->name('manage.staff.reports');
 Route::post('/staff', [StaffController::class, 'store'])->name('manage.staff.store');
 
 // 2. Keep detail routes above the catch-all (with whereNumber constraints)

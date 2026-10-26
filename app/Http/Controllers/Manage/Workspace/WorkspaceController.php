@@ -410,4 +410,20 @@ class WorkspaceController extends Controller
             'sort'       => $sort,
         ]);
     }
+
+    public function menu()
+    {
+        // Get the modules configuration
+        $modules = config('suweka_ui');
+        
+        // Calculate the counts for the cards
+        $counts = [
+            'inventory' => \Illuminate\Support\Facades\Schema::hasTable('su_products') ? \Illuminate\Support\Facades\DB::table('su_products')->count() : 0,
+            'customers' => \Illuminate\Support\Facades\Schema::hasTable('su_customers') ? \Illuminate\Support\Facades\DB::table('su_customers')->count() : 0,
+            'suppliers' => \Illuminate\Support\Facades\Schema::hasTable('su_suppliers') ? \Illuminate\Support\Facades\DB::table('su_suppliers')->count() : 0,
+            'staff'     => \Illuminate\Support\Facades\Schema::hasTable('su_staff') ? \Illuminate\Support\Facades\DB::table('su_staff')->count() : 0,
+        ];
+
+        return view('manage.workspace.home', compact('modules', 'counts'));
+    }
 }
