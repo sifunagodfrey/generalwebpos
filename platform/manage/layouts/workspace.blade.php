@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en" x-data="{navOpen:false,profileOpen:false,moreOpen:false,saleTab:'products',shiftModal:false,customerModal:false,supplierModal:false}" @sw:sale-tab.window="saleTab=$event.detail" @sw:open-shift.window="shiftModal=true" @sw:open-customer.window="customerModal=true" @keydown.escape.window="moreOpen=false;profileOpen=false">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}">
-<title>@yield('title','Suweka POS') â€” Suweka POS</title>
+<title>@yield('title','Suweka POS') Suweka POS</title>
 <link rel="icon" href="{{ asset('images/suweka-icon.png') }}">
 @vite(['resources/css/app.css','resources/js/app.js'])
 <link rel="stylesheet" href="{{ asset('css/suweka-workspace.css') }}?v={{ filemtime(public_path('css/suweka-workspace.css')) }}">
